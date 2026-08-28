@@ -459,7 +459,7 @@ def read_root():
 
 @app.get("/pipeline")
 def read_pipeline():
-    return FileResponse("static/index.html")
+    return FileResponse("static/pipeline.html")
 
 @app.get("/docker")
 def read_docker():
@@ -648,7 +648,7 @@ def generate_pipeline(request: GeneratePipelineRequest, current_user: str = Depe
         raise HTTPException(status_code=422, detail="Configuration Validation Failed:\n" + "\n".join(validation_errors))
 
     # Values might be things like "Node.js (NPM)" -> "node_npm_build"
-    # To keep it simple, we use logic depending on key names or rely on exactly identical keys if changed in index.html in V2.
+    # To keep it simple, we use logic depending on key names or rely on exactly identical keys if changed in pipeline.html in V2.
     expected_filename = PLATFORM_FILES.get(ci_platform_raw, "pipeline.yml")
 
     system_prompt = """You are DevOps Pipeline Architect AI, a Principal DevOps Engineer with 
