@@ -24,7 +24,7 @@
 
         body {
             font-family: 'Inter', sans-serif;
-            background: url('/static/chat_bg.png') no-repeat center center fixed;
+            background: url('/static/images/chat_bg.png') no-repeat center center fixed;
             background-size: cover;
             color: var(--text-primary);
             overflow: hidden;
@@ -1022,7 +1022,7 @@
   }
 }
     </style>
-    <link rel="icon" href="/static/genie_logo.png" type="image/png">
+    <link rel="icon" href="/static/images/genie_logo.png" type="image/png">
 </head>
 <body>
     
@@ -1076,7 +1076,7 @@
                 <!-- Welcome Message -->
                 <div class="message ai">
                     <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
-                        <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                        <img src="/static/images/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
                     </div>
                     <div class="bubble">
                         Hello! I am your PipelineGenie AI assistant. I can help you orchestrate cloud infrastructure, debug pipelines, or answer anything related to DevOps. How can I assist you today?
@@ -1139,7 +1139,7 @@
                 chatMessages.innerHTML = `
                     <div class="message ai">
                         <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
-                            <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                            <img src="/static/images/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
                         </div>
                         <div class="bubble">Hello! I am your PipelineGenie AI assistant. I can help you orchestrate cloud infrastructure, debug pipelines, or answer anything related to DevOps. How can I assist you today? Click 'New Chat' to begin.</div>
                     </div>
@@ -1205,7 +1205,7 @@
                 chatMessages.innerHTML = `
                     <div class="message ai">
                         <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
-                            <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                            <img src="/static/images/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
                         </div>
                         <div class="bubble">Hello! I am your PipelineGenie AI assistant. I can help you orchestrate cloud infrastructure, debug pipelines, or answer anything related to DevOps. How can I assist you today?</div>
                     </div>
@@ -1357,7 +1357,7 @@
             if (role === 'ai') {
                 msgDiv.innerHTML = `
                     <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
-                        <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                        <img src="/static/images/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
                     </div>
                     <div class="bubble">${simpleMarkdown(content)}</div>
                 `;
