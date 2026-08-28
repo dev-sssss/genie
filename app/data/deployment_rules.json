@@ -1,0 +1,88 @@
+{
+  "schema_version": "1.0",
+  "deployment_strategies": [
+    {
+      "id": "deploy.ssh",
+      "name": "SSH-based deployment",
+      "target_types": ["target.ec2", "target.azure_vm", "target.gcp_vm"],
+      "required_secrets": ["secret.ssh_host", "secret.ssh_user", "secret.ssh_private_key"],
+      "process_manager_options": ["deploy.pm2", "deploy.systemd"],
+      "stage_template_id": "stage.deploy.ssh.generic",
+      "notes": "Simplest option for a single VM. Requires a process manager to keep the app alive across reboots/crashes."
+    },
+    {
+      "id": "deploy.pm2",
+      "name": "PM2 process manager",
+      "target_types": ["target.ec2", "target.azure_vm", "target.gcp_vm"],
+      "required_secrets": [],
+      "parent_strategy": "deploy.ssh",
+      "start_command_template": "pm2 restart {{app_name}} || pm2 start {{entry_file}} --name {{app_name}}",
+      "notes": "Node-specific. Good default for Express/NestJS on a bare VM."
+    },
+    {
+      "id": "deploy.systemd",
+      "name": "systemd service",
+      "target_types": ["target.ec2", "target.azure_vm", "target.gcp_vm"],
+      "required_secrets": [],
+      "parent_strategy": "deploy.ssh",
+      "start_command_template": "sudo systemctl restart {{service_name}}",
+      "notes": "Language-agnostic. Requires a pre-existing unit file on the target VM."
+    },
+    {
+      "id": "deploy.docker",
+      "name": "Docker single-container deployment",
+      "target_types": ["target.ec2", "target.render", "target.railway", "target.cloud_run"],
+      "required_secrets": ["secret.docker_registry_username", "secret.docker_registry_password"],
+      "stage_template_id": "stage.deploy.docker.generic",
+      "notes": "Requires a Dockerfile at repo root (or specified path)."
+    },
+    {
+      "id": "deploy.docker_compose",
+      "name": "Docker Compose multi-container deployment",
+      "target_types": ["target.ec2", "target.azure_vm", "target.gcp_vm"],
+      "required_secrets": ["secret.ssh_host", "secret.ssh_user", "secret.ssh_private_key"],
+      "parent_strategy": "deploy.ssh",
+      "notes": "Copies docker-compose.yml to remote host and runs 'docker compose up -d'."
+    },
+    {
+      "id": "deploy.kubernetes",
+      "name": "Kubernetes deployment",
+      "target_types": ["target.eks", "target.aks", "target.gke"],
+      "required_secrets": ["secret.kubeconfig"],
+      "sub_strategies": ["deploy.kubectl_apply", "deploy.helm"],
+      "stage_template_id": "stage.deploy.kubectl.generic",
+      "notes": "kubeconfig should be scoped to a deploy-only service account, not cluster-admin."
+    },
+    {
+      "id": "deploy.helm",
+      "name": "Helm chart deployment",
+      "target_types": ["target.eks", "target.aks", "target.gke"],
+      "required_secrets": ["secret.kubeconfig"],
+      "parent_strategy": "deploy.kubernetes",
+      "requires_files": ["Chart.yaml", "values.yaml"],
+      "notes": "Preferred over raw kubectl apply when the app needs templated, versioned releases with rollback."
+    },
+    {
+      "id": "deploy.serverless_framework",
+      "name": "Serverless Framework",
+      "target_types": ["target.lambda"],
+      "required_secrets": ["secret.aws_role_arn"],
+      "requires_files": ["serverless.yml"],
+      "notes": "Wraps SAM/CloudFormation; good fit for multi-function Lambda apps."
+    },
+    {
+      "id": "deploy.lambda_zip",
+      "name": "Direct Lambda zip/container deploy",
+      "target_types": ["target.lambda"],
+      "required_secrets": ["secret.aws_role_arn"],
+      "notes": "Simpler than Serverless Framework for a single-function API; use aws lambda update-function-code."
+    },
+    {
+      "id": "deploy.cloud_run",
+      "name": "Cloud Run revision deploy",
+      "target_types": ["target.cloud_run"],
+      "required_secrets": ["secret.gcp_workload_identity_provider", "secret.gcp_service_account_email"],
+      "notes": "Container-based, scales to zero. Requires image pushed to Artifact Registry first."
+    }
+  ]
+}

@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DockerGenie - Dockerfile Factory</title>
+
+    <!-- Google Fonts Inter & Fira Code -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Fira+Code:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            /* Dark Theme (Default) */
+            --bg-color: #0b0f19;
+            --bg-secondary: #111827;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-bg-solid: #111827;
+            --card-hover: rgba(31, 41, 55, 0.8);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(56, 189, 248, 0.35);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-primary: #0284c7;
+            --accent-primary-hover: #0369a1;
+            --accent-cyan: #38bdf8;
+            --accent-cyan-glow: rgba(56, 189, 248, 0.2);
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: rgba(16, 185, 129, 0.1);
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: rgba(245, 158, 11, 0.1);
+            --accent-red: #f43f5e;
+            --accent-red-bg: rgba(244, 63, 94, 0.1);
+            --code-bg: #030712;
+            --code-text: #e2e8f0;
+            --sidebar-bg: rgba(15, 23, 42, 0.9);
+            --input-bg: rgba(3, 7, 18, 0.7);
+            --input-border: rgba(255, 255, 255, 0.12);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            --header-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+        }
+
+        [data-theme="light"] {
+            /* Light Theme - Crisp & High-Contrast */
+            --bg-color: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --card-bg: #ffffff;
+            --card-bg-solid: #ffffff;
+            --card-hover: #f8fafc;
+            --border-color: #cbd5e1;
+            --border-highlight: #0284c7;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --accent-primary: #0284c7;
+            --accent-primary-hover: #0369a1;
+            --accent-cyan: #0284c7;
+            --accent-cyan-glow: rgba(2, 132, 199, 0.15);
+            --accent-emerald: #059669;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-orange: #d97706;
+            --accent-orange-bg: #fffbeb;
+            --accent-red: #e11d48;
+            --accent-red-bg: #fff1f2;
+            --code-bg: #0f172a;
+            --code-text: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+            --header-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1.5rem 2.5rem 290px;
+            transition: background 0.3s ease, color 0.3s ease, padding-left 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        body.sidebar-closed {
+            padding-left: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Top Action Bar Buttons */
+        .top-action-btn {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 8px 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            height: 38px;
+        }
+        .top-action-btn:hover {
+            background: var(--card-hover);
+            border-color: var(--border-highlight);
+            color: var(--accent-cyan);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-title-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+        }
+
+        h1 span {
+            background: var(--header-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-family: 'Inter', sans-serif;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 400;
+            margin-top: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Modern Professional Card */
+        .search-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.75rem;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .search-card:hover {
+            border-color: var(--border-highlight);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .input-with-button {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+            .input-with-button {
+                flex-direction: column;
+            }
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            flex-grow: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            padding: 0.85rem 1.15rem;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            font-family: 'Fira Code', monospace;
+            outline: none;
+            position: relative;
+            z-index: 20;
+            pointer-events: auto !important;
+            user-select: auto !important;
+            -webkit-user-select: auto !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+        }
+
+        button,
+        .primary-btn {
+            background: var(--accent-primary);
+            color: #ffffff;
+            border: 1px solid transparent;
+            border-radius: 10px;
+            padding: 0.85rem 1.5rem;
+            font-size: 0.9rem;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        button:hover,
+        .primary-btn:hover {
+            background: var(--accent-primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
+        }
+
+        button:active,
+        .primary-btn:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Error/Info Banners */
+        .error-banner {
+            display: none;
+            background: var(--accent-red-bg);
+            color: var(--accent-red);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            font-weight: 500;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* Professional Stepper Loader */
+        .loader-wrap {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 3rem 0;
+        }
+
+        .spinner-container {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Split Columns Workspace */
+        .results-workspace {
+            display: none;
+            grid-template-columns: 420px minmax(0, 1fr);
+            gap: 1.5rem;
+            width: 100%;
+            margin-bottom: 3.5rem;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @media (max-width: 1080px) {
+            .results-workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .left-panel,
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            min-width: 0;
+        }
+
+        .brutalist-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .brutalist-card:hover {
+            border-color: var(--border-highlight);
+            box-shadow: var(--shadow-md);
+        }
+
+        .card-header-tab {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.85rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        /* Dynamic Grid Tiles */
+        .summary-dashboard {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.85rem;
+        }
+
+        @media (max-width: 576px) {
+            .summary-dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .summary-tile {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.9rem 1rem;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            transition: all 0.2s ease;
+        }
+        .summary-tile:hover {
+            border-color: var(--border-highlight);
+        }
+
+        .tile-label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .tile-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Badges */
+        .brutalist-badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            border: 1px solid transparent;
+            text-transform: uppercase;
+        }
+
+        .brutalist-badge.ready {
+            background: var(--accent-emerald-bg);
+            border-color: rgba(16, 185, 129, 0.3);
+            color: var(--accent-emerald);
+        }
+
+        .brutalist-badge.attention {
+            background: var(--accent-orange-bg);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: var(--accent-orange);
+        }
+
+        .brutalist-badge.neutral {
+            background: var(--accent-emerald-bg);
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        /* Docker Validation Lists */
+        .validation-section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin: 1.15rem 0 0.45rem 0;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .validation-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+        }
+
+        .validation-item {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            padding: 0.6rem 0.85rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .validation-item.warning {
+            border-left: 3px solid var(--accent-orange);
+            background: var(--accent-orange-bg);
+        }
+
+        .validation-item.blocker {
+            border-left: 3px solid var(--accent-red);
+            background: var(--accent-red-bg);
+        }
+
+        .validation-item.info {
+            border-left: 3px solid var(--accent-cyan);
+        }
+
+        /* Raw json & file codes */
+        .json-pre-wrapper {
+            background: var(--code-bg);
+            padding: 1rem;
+            max-height: 120px;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            position: relative;
+        }
+
+        pre {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            color: var(--code-text);
+            overflow-x: auto;
+        }
+
+        /* JSON Highlight */
+        .json-key { color: var(--accent-cyan); }
+        .json-string { color: var(--accent-emerald); }
+        .json-number { color: #c084fc; }
+        .json-boolean { color: var(--accent-orange); }
+        .json-null { color: var(--accent-red); }
+
+        /* Code Viewer */
+        .gen-code-pre {
+            background: var(--code-bg);
+            border: none;
+            padding: 1.5rem;
+            overflow-x: auto;
+            overflow-y: visible;
+            max-height: none;
+            white-space: pre;
+            word-break: normal;
+        }
+
+        /* Explanation Boxes */
+        .explanation-block {
+            margin: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: 1.25rem;
+            line-height: 1.6;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .explanation-block h3 {
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.35rem;
+        }
+
+        .explanation-block ul {
+            padding-left: 1.25rem;
+            margin: 0.5rem 0;
+        }
+
+        .explanation-block li {
+            margin-bottom: 0.35rem;
+        }
+
+        /* Chat Terminal */
+        .chat-terminal-wrap {
+            display: flex;
+            flex-direction: column;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .chat-history {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            padding: 1.25rem;
+            max-height: 350px;
+            overflow-y: auto;
+            background: var(--code-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chat-bubble {
+            max-width: 85%;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.82rem;
+            line-height: 1.5;
+        }
+
+        .chat-bubble.user {
+            align-self: flex-end;
+            background: var(--accent-primary);
+            color: #ffffff;
+        }
+
+        .chat-bubble.ai {
+            align-self: flex-start;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .chat-bubble.err {
+            align-self: flex-start;
+            background: var(--accent-red-bg);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: var(--accent-red);
+        }
+
+        .chat-input-row {
+            display: flex;
+            padding: 0.85rem;
+            background: var(--bg-secondary);
+            gap: 0.5rem;
+        }
+
+        .chat-input-row input {
+            flex-grow: 1;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            padding: 0.6rem 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            outline: none;
+            border-radius: 8px;
+        }
+
+        .chat-input-row button {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.82rem;
+            border-radius: 8px;
+        }
+
+        /* ─── Uiverse.io Loader by dexter-st ─── */
+        .loader-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 180px;
+          height: 180px;
+          font-family: "Inter", sans-serif;
+          font-size: 1.2em;
+          font-weight: 300;
+          color: white;
+          border-radius: 50%;
+          background-color: transparent;
+          user-select: none;
+          margin: 1.5rem auto;
+        }
+
+        .loader {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+          background-color: transparent;
+          animation: loader-rotate 2s linear infinite;
+          z-index: 0;
+        }
+
+        @keyframes loader-rotate {
+          0% {
+            transform: rotate(90deg);
+            box-shadow:
+              0 10px 20px 0 #fff inset,
+              0 20px 30px 0 #ad5fff inset,
+              0 60px 60px 0 #471eec inset;
+          }
+          50% {
+            transform: rotate(270deg);
+            box-shadow:
+              0 10px 20px 0 #fff inset,
+              0 20px 10px 0 #d60a47 inset,
+              0 40px 60px 0 #311e80 inset;
+          }
+          100% {
+            transform: rotate(450deg);
+            box-shadow:
+              0 10px 20px 0 #fff inset,
+              0 20px 30px 0 #ad5fff inset,
+              0 60px 60px 0 #471eec inset;
+          }
+        }
+
+        .loader-letter {
+          display: inline-block;
+          opacity: 0.4;
+          transform: translateY(0);
+          animation: loader-letter-anim 2s infinite;
+          z-index: 1;
+          border-radius: 50ch;
+          border: none;
+        }
+
+        .loader-letter:nth-child(1) {
+          animation-delay: 0s;
+        }
+        .loader-letter:nth-child(2) {
+          animation-delay: 0.1s;
+        }
+        .loader-letter:nth-child(3) {
+          animation-delay: 0.2s;
+        }
+        .loader-letter:nth-child(4) {
+          animation-delay: 0.3s;
+        }
+        .loader-letter:nth-child(5) {
+          animation-delay: 0.4s;
+        }
+        .loader-letter:nth-child(6) {
+          animation-delay: 0.5s;
+        }
+        .loader-letter:nth-child(7) {
+          animation-delay: 0.6s;
+        }
+        .loader-letter:nth-child(8) {
+          animation-delay: 0.7s;
+        }
+        .loader-letter:nth-child(9) {
+          animation-delay: 0.8s;
+        }
+        .loader-letter:nth-child(10) {
+          animation-delay: 0.9s;
+        }
+
+        @keyframes loader-letter-anim {
+          0%,
+          100% {
+            opacity: 0.4;
+            transform: translateY(0);
+          }
+          20% {
+            opacity: 1;
+            transform: scale(1.15);
+          }
+          40% {
+            opacity: 0.7;
+            transform: translateY(0);
+          }
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 270px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            padding: 2.2rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+        }
+
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+
+        /* ─── 3D LAMP TOGGLE (Sidebar Open/Close) ─── */
+        .lamp-toggle-container {
+          display: flex; flex-direction: column; align-items: center; position: absolute;
+          right: -60px; top: 15px; z-index: 9999;
+          cursor: pointer; user-select: none; perspective: 1000px;
+          transform: scale(0.35); transform-origin: left center;
+          width: 50px; height: 60px;
+        }
+
+        .lamp-toggle-container input { position: absolute; opacity: 0; }
+
+        .lamp-block {
+          position: relative; width: 100px; height: 100px;
+          transform-style: preserve-3d;
+          transform: rotateX(-30deg) rotateY(45deg);
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .face {
+          position: absolute; width: 100px; height: 100px; display: grid;
+          grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr);
+          border: 5px solid #281910; box-sizing: border-box; background: #281910;
+        }
+
+        .face div {
+          width: 100%; height: 100%; background-color: #4f3122; border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        .top { transform: rotateX(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+        .front { transform: rotateY(0deg) translateZ(50px); }
+        .back { transform: rotateY(180deg) translateZ(50px); }
+        .left { transform: rotateY(-90deg) translateZ(50px); }
+        .right { transform: rotateY(90deg) translateZ(50px); }
+
+        .face div:nth-child(3n) { filter: brightness(110%); }
+        .face div:nth-child(7n) { filter: brightness(80%); }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face {
+          border-color: #5b3a24;
+          filter: drop-shadow(0px 0px 25px rgba(255, 174, 66, 0.5));
+        }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face div {
+          background-color: #e58d4a; border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face div:nth-child(3n) { background-color: #f6b17a; }
+        .lamp-toggle-container input:checked ~ .lamp-block .face div:nth-child(7n) { background-color: #b56732; }
+
+        .lamp-toggle-container:hover .lamp-block { transform: rotateX(-30deg) rotateY(55deg); }
+        .lamp-toggle-container:active .lamp-block { transform: rotateX(-30deg) rotateY(45deg) scale(0.9); }
+
+        .sidebar-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .genie-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .genie-nav-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2;
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+        }
+
+        .genie-nav-btn:hover {
+            background: var(--card-hover);
+            color: var(--text-primary);
+        }
+        .genie-nav-btn:hover svg {
+            color: var(--accent-cyan);
+        }
+
+        .genie-nav-btn.active {
+            background: var(--accent-primary);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .genie-nav-btn.active svg {
+            color: #ffffff;
+            stroke: #ffffff;
+        }
+
+        /* ─── UIVERSE THEME SWITCH (Galahhad) ─── */
+        .theme-switch {
+          --toggle-size: 13.5px;
+          --container-width: 5.625em;
+          --container-height: 2.5em;
+          --container-radius: 6.25em;
+          --container-light-bg: #3D7EAE;
+          --container-night-bg: #1D1F2C;
+          --circle-container-diameter: 3.375em;
+          --sun-moon-diameter: 2.125em;
+          --sun-bg: #ECCA2F;
+          --moon-bg: #C4C9D1;
+          --spot-color: #959DB1;
+          --circle-container-offset: calc((var(--circle-container-diameter) - var(--container-height)) / 2 * -1);
+          --stars-color: #fff;
+          --clouds-color: #F3FDFF;
+          --back-clouds-color: #AACADF;
+          --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25);
+          --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17);
+          display: inline-flex;
+          align-items: center;
+          user-select: none;
+        }
+
+        .theme-switch, .theme-switch *, .theme-switch *::before, .theme-switch *::after {
+          -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          font-size: var(--toggle-size);
+        }
+
+        .theme-switch__container {
+          width: var(--container-width);
+          height: var(--container-height);
+          background-color: var(--container-light-bg);
+          border-radius: var(--container-radius);
+          overflow: hidden;
+          cursor: pointer;
+          -webkit-box-shadow: 0em -0.062em 0.062em rgba(0, 0, 0, 0.25), 0em 0.062em 0.125em rgba(255, 255, 255, 0.94);
+          box-shadow: 0em -0.062em 0.062em rgba(0, 0, 0, 0.25), 0em 0.062em 0.125em rgba(255, 255, 255, 0.94);
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+          position: relative;
+        }
+
+        .theme-switch__container::before {
+          content: "";
+          position: absolute;
+          z-index: 1;
+          inset: 0;
+          -webkit-box-shadow: 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset, 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset;
+          box-shadow: 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset, 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset;
+          border-radius: var(--container-radius)
+        }
+
+        .theme-switch__checkbox {
+          display: none;
+        }
+
+        .theme-switch__circle-container {
+          width: var(--circle-container-diameter);
+          height: var(--circle-container-diameter);
+          background-color: rgba(255, 255, 255, 0.1);
+          position: absolute;
+          left: var(--circle-container-offset);
+          top: var(--circle-container-offset);
+          border-radius: var(--container-radius);
+          -webkit-box-shadow: inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), 0 0 0 0.625em rgba(255, 255, 255, 0.1), 0 0 0 1.25em rgba(255, 255, 255, 0.1);
+          box-shadow: inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), 0 0 0 0.625em rgba(255, 255, 255, 0.1), 0 0 0 1.25em rgba(255, 255, 255, 0.1);
+          display: -webkit-box;
+          display: -ms-flexbox;
+          display: flex;
+          -webkit-transition: var(--circle-transition);
+          -o-transition: var(--circle-transition);
+          transition: var(--circle-transition);
+          pointer-events: none;
+        }
+
+        .theme-switch__sun-moon-container {
+          pointer-events: auto;
+          position: relative;
+          z-index: 2;
+          width: var(--sun-moon-diameter);
+          height: var(--sun-moon-diameter);
+          margin: auto;
+          border-radius: var(--container-radius);
+          background-color: var(--sun-bg);
+          -webkit-box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #a1872a inset;
+          box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #a1872a inset;
+          -webkit-filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25)) drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25));
+          filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25)) drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25));
+          overflow: hidden;
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+        }
+
+        .theme-switch__moon {
+          -webkit-transform: translateX(100%);
+          -ms-transform: translateX(100%);
+          transform: translateX(100%);
+          width: 100%;
+          height: 100%;
+          background-color: var(--moon-bg);
+          border-radius: inherit;
+          -webkit-box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #969696 inset;
+          box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #969696 inset;
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+          position: relative;
+        }
+
+        .theme-switch__spot {
+          position: absolute;
+          top: 0.75em;
+          left: 0.312em;
+          width: 0.75em;
+          height: 0.75em;
+          border-radius: var(--container-radius);
+          background-color: var(--spot-color);
+          -webkit-box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset;
+          box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset;
+        }
+
+        .theme-switch__spot:nth-of-type(2) {
+          width: 0.375em;
+          height: 0.375em;
+          top: 0.937em;
+          left: 1.375em;
+        }
+
+        .theme-switch__spot:nth-last-of-type(3) {
+          width: 0.25em;
+          height: 0.25em;
+          top: 0.312em;
+          left: 0.812em;
+        }
+
+        .theme-switch__clouds {
+          width: 1.25em;
+          height: 1.25em;
+          background-color: var(--clouds-color);
+          border-radius: var(--container-radius);
+          position: absolute;
+          bottom: -0.625em;
+          left: 0.312em;
+          -webkit-box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--back-clouds-color);
+          box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--back-clouds-color);
+          -webkit-transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+          -o-transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+          transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+        }
+
+        .theme-switch__stars-container {
+          position: absolute;
+          color: var(--stars-color);
+          top: -100%;
+          left: 0.312em;
+          width: 2.75em;
+          height: auto;
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+        }
+
+        /* actions */
+        .theme-switch__checkbox:checked + .theme-switch__container {
+          background-color: var(--container-night-bg);
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container {
+          left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter));
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container:hover {
+          left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter) - 0.187em);
+        }
+
+        .theme-switch__circle-container:hover {
+          left: calc(var(--circle-container-offset) + 0.187em);
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon {
+          -webkit-transform: translate(0);
+          -ms-transform: translate(0);
+          transform: translate(0);
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds {
+          bottom: -4.062em;
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container {
+          top: 50%;
+          -webkit-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+          transform: translateY(-50%);
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding: 2.5rem 0 1rem 0;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            text-align: center;
+        }
+
+        footer a {
+            color: var(--accent-cyan);
+            text-decoration: none;
+        }
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.92);
+            color: #ffffff;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 99999;
+            opacity: 0;
+            transform: translateY(12px) scale(0.96);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .toast-notification svg {
+            color: var(--accent-emerald);
+            flex-shrink: 0;
+        }
+    </style>
+    <link rel="icon" href="/static/genie_logo.png" type="image/png">
+</head>
+
+<body>
+    <!-- Professional Sidebar Navigation -->
+    <nav class="sidebar">
+        <label class="lamp-toggle-container" title="Toggle Sidebar">
+            <input type="checkbox" onchange="toggleSidebar()" checked="checked">
+            <div class="lamp-block">
+                <div class="face front"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face back"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face right"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face left"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face top"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face bottom"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+            </div>
+        </label>
+
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">PipelineGenie</h2>
+        </div>
+
+        <div class="sidebar-menu">
+            <a href="/pipeline" class="genie-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
+                    <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
+                    <line x1="6" y1="6" x2="6.01" y2="6"></line>
+                    <line x1="6" y1="18" x2="6.01" y2="18"></line>
+                </svg>
+                Pipeline Architect
+            </a>
+            <a href="/docker" class="genie-nav-btn active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 17H2c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h20c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"></path>
+                    <path d="M6 13h12"></path>
+                </svg>
+                Docker Factory
+            </a>
+        </div>
+
+        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="/chat" class="genie-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Genie Assistant
+            </a>
+            <a href="/" class="genie-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Portal Home
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Top Action Bar inside page flow -->
+        <div style="width: 100%; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <!-- Galahhad Theme Switcher -->
+            <label class="theme-switch" title="Toggle Light / Dark Mode">
+                <input type="checkbox" id="theme-switch-checkbox" class="theme-switch__checkbox" onchange="onThemeToggleChange(this)">
+                <div class="theme-switch__container">
+                    <div class="theme-switch__clouds"></div>
+                    <div class="theme-switch__stars-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none" style="width:100%; height:auto;">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M138.5 24C138.224 24 138 23.7761 138 23.5C138 23.2239 138.224 23 138.5 23C138.776 23 139 23.2239 139 23.5C139 23.7761 138.776 24 138.5 24ZM134.5 29C134.224 29 134 28.7761 134 28.5C134 28.2239 134.224 28 134.5 28C134.776 28 135 28.2239 135 28.5C135 28.7761 134.776 29 134.5 29ZM129.5 21C129.224 21 129 20.7761 129 20.5C129 20.2239 129.224 20 129.5 20C129.776 20 130 20.2239 130 20.5C130 20.7761 129.776 21 129.5 21ZM124.5 26C124.224 26 124 25.7761 124 25.5C124 25.2239 124.224 25 124.5 25C124.776 25 125 25.2239 125 25.5C125 25.7761 124.776 26 124.5 26ZM119.5 17C119.224 17 119 16.7761 119 16.5C119 16.2239 119.224 16 119.5 16C119.776 16 120 16.2239 120 16.5C120 16.7761 119.776 17 119.5 17ZM114.5 24C114.224 24 114 23.7761 114 23.5C114 23.2239 114.224 23 114.5 23C114.776 23 115 23.2239 115 23.5C115 23.7761 114.776 24 114.5 24ZM109.5 15C109.224 15 109 14.7761 109 14.5C109 14.2239 109.224 14 109.5 14C109.776 14 110 14.2239 110 14.5C110 14.7761 109.776 15 109.5 15ZM104.5 22C104.224 22 104 21.7761 104 21.5C104 21.2239 104.224 21 104.5 21C104.776 21 105 21.2239 105 21.5C105 21.7761 104.776 22 104.5 22ZM99.5 13C99.2239 13 99 12.7761 99 12.5C99 12.2239 99.2239 12 99.5 12C99.7761 12 100 12.2239 100 12.5C100 12.7761 99.7761 13 99.5 13ZM94.5 20C94.2239 20 94 19.7761 94 19.5C94 19.2239 94.2239 19 94.5 19C94.7761 19 95 19.2239 95 19.5C95 19.7761 94.7761 20 94.5 20ZM89.5 11C89.2239 11 89 10.7761 89 10.5C89 10.2239 89.2239 10 89.5 10C89.7761 10 90 10.2239 90 10.5C90 10.7761 89.7761 11 89.5 11ZM84.5 18C84.2239 18 84 17.7761 84 17.5C84 17.2239 84.2239 17 84.5 17C84.7761 17 85 17.2239 85 17.5C85 17.7761 84.7761 18 84.5 18ZM79.5 9C79.2239 9 79 8.77614 79 8.5C79 8.22386 79.2239 8 79.5 8C79.7761 8 80 8.22386 80 8.5C80 8.77614 79.7761 9 79.5 9ZM74.5 16C74.2239 16 74 15.7761 74 15.5C74 15.2239 74.2239 15 74.5 15C74.7761 15 75 15.2239 75 15.5C75 15.7761 74.7761 16 74.5 16ZM69.5 7C69.2239 7 69 6.77614 69 6.5C69 6.22386 69.2239 6 69.5 6C69.7761 6 70 6.22386 70 6.5C70 6.77614 69.7761 7 69.5 7ZM64.5 14C64.2239 14 64 13.7761 64 13.5C64 13.2239 64.2239 13 64.5 13C64.7761 13 65 13.2239 65 13.5C65 13.7761 64.7761 14 64.5 14ZM59.5 5C59.2239 5 59 4.77614 59 4.5C59 4.22386 59.2239 4 59.5 4C59.7761 4 60 4.22386 60 4.5C60 4.77614 59.7761 5 59.5 5ZM54.5 12C54.2239 12 54 11.7761 54 11.5C54 11.2239 54.2239 11 54.5 11C54.7761 11 55 11.2239 55 11.5C55 11.7761 54.7761 12 54.5 12ZM49.5 3C49.2239 3 49 2.77614 49 2.5C49 2.22386 49.2239 2 49.5 2C49.7761 2 50 2.22386 50 2.5C50 2.77614 49.7761 3 49.5 3ZM44.5 10C44.2239 10 44 9.77614 44 9.5C44 9.22386 44.2239 9 44.5 9C44.7761 9 45 9.22386 45 9.5C45 9.77614 44.7761 10 44.5 10ZM39.5 1C39.2239 1 39 0.776142 39 0.5C39 0.223858 39.2239 0 39.5 0C39.7761 0 40 0.223858 40 0.5C40 0.776142 39.7761 1 39.5 1ZM34.5 8C34.2239 8 34 7.77614 34 7.5C34 7.22386 34 7.5C34 7.22386 35 7.77614 35 7.5C35 7.77614 34.7761 8 34.5 8ZM29.5 2C29.2239 2 29 1.77614 29 1.5C29 1.22386 29.2239 1 29.5 1C29.7761 1 30 1.22386 30 1.5C30 1.77614 29.7761 2 29.5 2ZM24.5 9C24.2239 9 24 8.77614 24 8.5C24 8.22386 24 8.5 24.5 8C24.7761 8 25 8.22386 25 8.5C25 8.77614 24.7761 9 24.5 9ZM19.5 4C19.2239 4 19 3.77614 19 3.5C19 3.22386 19 3.5 19.5 3C19.7761 3 20 3.22386 20 3.5C20 3.77614 19.7761 4 19.5 4ZM14.5 11C14.2239 11 14 10.7761 14 10.5C14 10.2239 14.2239 10 14.5 10C14.7761 10 15 10.2239 15 10.5C15 10.7761 14.7761 11 14.5 11ZM9.5 6C9.22386 6 9 5.77614 9 5.5C9 5.22386 9.22386 5 9.5 5C9.77614 5 10 5.22386 10 5.5C10 5.77614 9.77614 6 9.5 6ZM4.5 13C4.22386 13 4 12.7761 4 12.5C4 12.2239 4.22386 12 4.5 12C4.77614 12 5 12.2239 5 12.5C5 12.7761 4.77614 13 4.5 13Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="theme-switch__circle-container">
+                        <div class="theme-switch__sun-moon-container">
+                            <div class="theme-switch__moon">
+                                <div class="theme-switch__spot"></div>
+                                <div class="theme-switch__spot"></div>
+                                <div class="theme-switch__spot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+
+            <a href="/" class="top-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Home
+            </a>
+
+            <select id="model-select" class="top-action-btn" style="cursor: pointer; outline: none;">
+                <option value="x-ai/grok-4.6">Grok 4.6 (Reasoning)</option>
+                <option value="moonshotai/kimi-k3">Kimi K3 (Advanced)</option>
+            </select>
+
+            <button class="top-action-btn" id="global-auth-btn" onclick="showAuthModal()" style="color: var(--accent-cyan); font-weight: 600;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Sign In / Sign Up
+            </button>
+        </div>
+
+        <header>
+            <div class="header-title-wrap">
+                <h1>DOCKER <span>GENIE</span></h1>
+            </div>
+            <p class="subtitle">Intelligent Container Orchestrator</p>
+        </header>
+
+        <!-- Search Input Box (Brutalist style) -->
+        <div class="search-card">
+            <div class="input-group">
+                <label for="repo-url">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                        </path>
+                    </svg>
+                    Enter Git Repository URL
+                </label>
+                <div class="input-with-button">
+                    <input type="text" id="repo-url" autocomplete="off" placeholder="https://github.com/vercel/next.js"
+                        value="">
+                    <button id="analyze-btn" onclick="startAnalysis()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        Analyze
+                    </button>
+                </div>
+                <!-- PAT input -->
+                <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                    <label for="github-token">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        GitHub Personal Access Token (Optional)
+                    </label>
+                    <input type="password" id="github-token" autocomplete="new-password"
+                        placeholder="ghp_....................................">
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Card -->
+        <div id="error-card" class="error-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <div id="error-message">Failed to analyze repository. Make sure URL is public.</div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="loader-wrap">
+            <div class="spinner-container"></div>
+            <p id="loader-msg" class="subtitle">Extracting codebase footprint...</p>
+        </div>
+
+        <!-- Dashboard Layout Split -->
+        <div id="results" class="results-workspace">
+
+            <!-- LEFT PANEL: Summary, Validation, Trigger Button -->
+            <div class="left-panel">
+
+                <!-- Heuristic summaries -->
+                <div class="brutalist-card">
+                    <div class="card-header-tab">
+                        <span>Heuristic Footprint</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="summary-dashboard" id="dashboard">
+                            <!-- Dynamic Tiles Injected Here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Docker Validation Report -->
+                <div class="brutalist-card">
+                    <div class="card-header-tab">
+                        <span>Containerization Readiness Reports</span>
+                    </div>
+                    <div class="card-body" style="padding: 1.25rem;">
+                        <div id="docker-validation-content">
+                            <!-- Dynamically loaded blockers and warnings -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Docker Factory Build Drawer -->
+                <div class="brutalist-card" id="docker-generator-section">
+                    <div class="card-header-tab">
+                        <span>Dockerfile Factory</span>
+                    </div>
+                    <div class="card-body" style="text-align: center;">
+                        <p
+                            style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem; font-family: 'Fira Code', monospace;">
+                            Generate optimal target build configuration. No placeholders, multi-stage optimized.
+                        </p>
+                        <button class="primary-btn" onclick="generateDockerfile(this)" style="width: 100%;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <polygon points="12 2 2 22 22 22"></polygon>
+                            </svg>
+                            Generate Dockerfile
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Raw JSON Panel (Retractable) -->
+                <div class="brutalist-card">
+                    <div class="card-header-tab">
+                        <span>raw_footprint.json</span>
+                        <button id="toggle-json-btn" class="primary-btn"
+                            style="padding: 0.2rem 0.5rem; font-size: 0.75rem; box-shadow: 2px 2px 0 #000; border-width: 2px;"
+                            onclick="toggleJsonOutput()">Show JSON</button>
+                    </div>
+                    <div class="json-pre-wrapper" id="json-rendered-pre">
+                        <pre><code id="json-rendered"></code></pre>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT PANEL: Generated File output & Chat fixing terminal -->
+            <div class="right-panel">
+
+                <!-- AI Generation Loader -->
+                <div id="generation-loader" class="brutalist-card"
+                    style="display:none; text-align:center; padding:3rem; margin-bottom:1.5rem;">
+                    <div class="loader-wrapper">
+                        <div class="loader"></div>
+                        <span class="loader-letter">G</span>
+                        <span class="loader-letter">E</span>
+                        <span class="loader-letter">N</span>
+                        <span class="loader-letter">E</span>
+                        <span class="loader-letter">R</span>
+                        <span class="loader-letter">A</span>
+                        <span class="loader-letter">T</span>
+                        <span class="loader-letter">I</span>
+                        <span class="loader-letter">N</span>
+                        <span class="loader-letter">G</span>
+                    </div>
+                    <p id="gen-loader-msg"
+                        style="margin:2rem 0 0; font-size:1.1rem; font-family: 'Fira Code', monospace; font-weight: bold; color: var(--docker-blue);">
+                        AI is compiling your Dockerfile...</p>
+                    <p style="margin:0.5rem 0 0; font-size:0.8rem; font-family: 'Fira Code', monospace; opacity:0.6;">
+                        Optimizing layers & multi-stage target cache — this may take 10–20 seconds</p>
+                </div>
+
+                <!-- Dockerfile Output results -->
+                <div id="generated-pipeline-card" class="brutalist-card" style="display: none;">
+                    <div class="card-header-tab">
+                        <span id="output-filename">Dockerfile</span>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button id="copy-code-btn" class="primary-btn"
+                                style="padding: 0.2rem 0.5rem; font-size: 0.75rem; box-shadow: 2px 2px 0 #000; border-width: 2px;"
+                                onclick="copyGeneratedFileCode()">Copy</button>
+                            <button id="dl-code-btn" class="primary-btn"
+                                style="padding: 0.2rem 0.5rem; font-size: 0.75rem; box-shadow: 2px 2px 0 #000; border-width: 2px;"
+                                onclick="downloadGeneratedFileCode()">Download</button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0;">
+                        <pre class="gen-code-pre"><code id="gen-code-content"></code></pre>
+
+                        <!-- Details and blueprints recommendations -->
+                        <div class="explanation-block" id="gen-explanation-block">
+                            <!-- Injected explanations of Docker steps -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Terminal Repair Box -->
+                <div id="error-chatbox-container" class="chat-terminal-wrap" style="display: none;">
+                    <div class="card-header-tab" style="background: var(--accent-red); color: #000000;">
+                        <span>Docker Build Repair Assistant</span>
+                    </div>
+                    <div class="chat-history" id="chat-history">
+                        <!-- Chat history here -->
+                        <div class="chat-bubble ai">
+                            System initialized. Paste any Dockerfile compile errors or request modifications above.
+                        </div>
+                    </div>
+                    <div class="chat-input-row">
+                        <input type="text" id="pipeline-error-input"
+                            placeholder="Paste build errors or request fixes..."
+                            onkeypress="if(event.key === 'Enter') submitDockerError()">
+                        <button onclick="submitDockerError()">Fix</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+        <footer>
+            <p>Genie.SSS<br>A DevOps Product by Sensetronix Software Services</p>
+        </footer>
+
+        <script>
+            let currentRawJson = null;
+            let generatedDockerfileData = null;
+
+            // Colorize JSON string for pretty printing
+            function syntaxHighlight(json) {
+                if (typeof json !== 'string') {
+                    json = JSON.stringify(json, undefined, 2);
+                }
+                json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
+                    let cls = 'json-number';
+                    if (/^"/.test(match)) {
+                        if (/:$/.test(match)) {
+                            cls = 'json-key';
+                        } else {
+                            cls = 'json-string';
+                        }
+                    } else if (/true|false/.test(match)) {
+                        cls = 'json-boolean';
+                    } else if (/null/.test(match)) {
+                        cls = 'json-null';
+                    }
+                    return '<span class="' + cls + '">' + match + '</span>';
+                });
+            }
+
+            function toggleJsonOutput() {
+                const pre = document.getElementById('json-rendered-pre');
+                const btn = document.getElementById('toggle-json-btn');
+                if (pre.style.maxHeight === '120px' || pre.style.maxHeight === '') {
+                    pre.style.maxHeight = '2000px';
+                    btn.innerText = 'Hide JSON';
+                } else {
+                    pre.style.maxHeight = '120px';
+                    btn.innerText = 'Show JSON';
+                    pre.scrollTop = 0;
+                }
+            }
+
+            async function startAnalysis() {
+                const token = localStorage.getItem("genie_auth_token");
+                if (!token) {
+                    showAuthModal();
+                    return;
+                }
+                const urlInput = document.getElementById('repo-url').value.trim();
+                let tokenInput = document.getElementById('github-token') ? document.getElementById('github-token').value.trim() : null;
+                if (tokenInput === "") tokenInput = null;
+
+                const analyzeBtn = document.getElementById('analyze-btn');
+                const loader = document.getElementById('loader');
+                const results = document.getElementById('results');
+                const errorCard = document.getElementById('error-card');
+
+                if (!urlInput) {
+                    alert('Please enter a valid Git repository URL.');
+                    return;
+                }
+
+                // Reset states
+                errorCard.style.display = 'none';
+                results.style.display = 'none';
+                loader.style.display = 'flex';
+                analyzeBtn.disabled = true;
+
+                const loaderMessages = [
+                    "Locating target repository branch...",
+                    "Running structural workspace indexer...",
+                    "Parsing dependency configurations & lockfiles...",
+                    "Scanning Next.js configuration files...",
+                    "Drafting Docker validation blueprint..."
+                ];
+
+                let messageIdx = 0;
+                const messageInterval = setInterval(() => {
+                    if (messageIdx < loaderMessages.length) {
+                        document.getElementById('loader-msg').innerText = loaderMessages[messageIdx++];
+                    }
+                }, 1200);
+
+                try {
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ repo_url: urlInput, github_token: tokenInput })
+                    });
+
+                    clearInterval(messageInterval);
+                    loader.style.display = 'none';
+                    analyzeBtn.disabled = false;
+
+                    if (!response.ok) {
+                        const errorDetail = await response.json();
+                        throw new Error(errorDetail.detail || `Server responded with status ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    currentRawJson = data;
+
+                    renderDashboard(data);
+                    renderValidationReport(data);
+
+                    const preCode = document.getElementById('json-rendered');
+                    preCode.innerHTML = syntaxHighlight(data);
+
+                    results.style.display = 'grid';
+
+                } catch (err) {
+                    clearInterval(messageInterval);
+                    loader.style.display = 'none';
+                    analyzeBtn.disabled = false;
+
+                    document.getElementById('error-message').innerText = err.message;
+                    errorCard.style.display = 'flex';
+                }
+            }
+
+            function renderDashboard(data) {
+                const dashboard = document.getElementById('dashboard');
+                dashboard.innerHTML = '';
+
+                const backend = data.backend || {};
+                const frontend = data.frontend || {};
+
+                // 1. Language & runtime
+                const lang = backend.language || frontend.language || 'Unknown';
+                const framework = backend.framework?.name || frontend.framework?.name || 'Vanilla/None';
+                createTile('Technology Stack', `${lang} (${framework})`);
+
+                // 2. Package manager & lockfile
+                const pm = backend.package_manager || frontend.package_manager || 'None';
+                const lockfiles = data.infrastructure?.docker?.lock_files || {};
+                const activeLocks = Object.keys(lockfiles).filter(k => lockfiles[k]);
+                const lockfileText = activeLocks.length > 0 ? activeLocks.join(', ') : 'No lockfile';
+                createTile('Package / Lockfiles', `${pm} [${lockfileText}]`);
+
+                // 3. Standalone Heuristic
+                const isStandalone = frontend.next_info?.standalone_enabled;
+                const standaloneText = isStandalone ? 'Enabled (standalone)' : 'Default Build';
+                createTile('NextJS Standalone', standaloneText);
+
+                // 4. Target Port
+                const port = backend.port || frontend.dev_command?.match(/--port (\d+)/)?.[1] || '3000';
+                createTile('Exposed Target Port', `PORT: ${port}`);
+            }
+
+            function createTile(label, value) {
+                const dashboard = document.getElementById('dashboard');
+                const tile = document.createElement('div');
+                tile.className = 'summary-tile';
+                tile.innerHTML = `
+                <div class="tile-label">${label}</div>
+                <div class="tile-value">${value}</div>
+            `;
+                dashboard.appendChild(tile);
+            }
+
+            function renderValidationReport(data) {
+                const container = document.getElementById('docker-validation-content');
+                container.innerHTML = '';
+
+                const docker = data.infrastructure?.docker || {};
+                const valReport = docker.docker_validation;
+
+                if (!valReport) {
+                    container.innerHTML = '<p style="color: var(--text-secondary); font-family: Fira Code, monospace; font-size: 0.85rem;">No validation findings available.</p>';
+                    return;
+                }
+
+                // Readiness Badge
+                const isReady = valReport.can_generate;
+                const badgeClass = isReady ? 'ready' : 'attention';
+                const badgeText = isReady ? 'READINESS STATUS: APPROVED' : 'READINESS STATUS: ISSUES FOUND';
+
+                let html = `
+                <div style="margin-bottom: 1.25rem;">
+                    <span class="brutalist-badge ${badgeClass}">${badgeText}</span>
+                    <span class="brutalist-badge neutral" style="margin-left: 0.5rem; background: #fff; color: #000;">CONFIDENCE: ${(valReport.confidence * 100).toFixed(0)}%</span>
+                </div>
+            `;
+
+                // Recommendation Specs
+                html += `
+                <div class="validation-section-title">Blueprint Recommendations:</div>
+                <ul class="validation-list" style="margin-bottom: 1rem;">
+                    <li class="validation-item info"><strong>Base Image:</strong> ${valReport.recommended_base_image || 'alpine'}</li>
+                    <li class="validation-item info"><strong>Package Manager:</strong> ${valReport.recommended_package_manager || 'npm'}</li>
+                    <li class="validation-item info"><strong>Strategy:</strong> ${valReport.recommended_strategy || 'Standard Build'}</li>
+                </ul>
+            `;
+
+                // Blockers & Warnings
+                if (valReport.blocking_issues && valReport.blocking_issues.length > 0) {
+                    html += `<div class="validation-section-title">Blocking Issues (Fix Required):</div>`;
+                    html += `<ul class="validation-list" style="margin-bottom: 1rem;">`;
+                    valReport.blocking_issues.forEach(issue => {
+                        html += `<li class="validation-item blocker">${issue}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+
+                if (valReport.warnings && valReport.warnings.length > 0) {
+                    html += `<div class="validation-section-title">Validation Warnings:</div>`;
+                    html += `<ul class="validation-list">`;
+                    valReport.warnings.forEach(warn => {
+                        html += `<li class="validation-item warning">${warn}</li>`;
+                    });
+                    html += `</ul>`;
+                }
+
+                container.innerHTML = html;
+            }
+
+            async function generateDockerfile(btn) {
+                if (!currentRawJson) return;
+
+                const originalText = btn.innerHTML;
+                btn.innerHTML = 'EXTRACTING BLUEPRINT...';
+                btn.disabled = true;
+
+                const outputCard = document.getElementById('generated-pipeline-card');
+                const codeContent = document.getElementById('gen-code-content');
+                const explBlock = document.getElementById('gen-explanation-block');
+                const chatContainer = document.getElementById('error-chatbox-container');
+                const loaderCard = document.getElementById('generation-loader');
+
+                outputCard.style.display = 'none';
+                chatContainer.style.display = 'none';
+                if (loaderCard) {
+                    loaderCard.style.display = 'block';
+                    loaderCard.scrollIntoView({ behavior: 'smooth' });
+                }
+
+                try {
+                    const token = localStorage.getItem("genie_auth_token");
+                    const response = await fetch('/generate-dockerfile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({
+                            analysis: currentRawJson,
+                            model: document.getElementById('model-select').value
+                        })
+                    });
+
+                    if (!response.ok) throw new Error("Backend compilation service returned an error.");
+
+                    const data = await response.json();
+                    generatedDockerfileData = data;
+
+                    document.getElementById('output-filename').innerText = data.filename || 'Dockerfile';
+                    codeContent.textContent = data.content || '';
+
+                    // Render custom explanation
+                    if (data.explanation) {
+                        explBlock.innerHTML = `
+                        <h3>Description & Specifications</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; font-family: 'Fira Code', monospace;">
+                            ${data.explanation.replace(/\n/g, '<br>')}
+                        </p>
+                    `;
+                        explBlock.style.display = 'block';
+                    } else {
+                        explBlock.style.display = 'none';
+                    }
+
+                    if (loaderCard) loaderCard.style.display = 'none';
+                    outputCard.style.display = 'block';
+                    chatContainer.style.display = 'block';
+                    outputCard.scrollIntoView({ behavior: 'smooth' });
+
+                } catch (err) {
+                    if (loaderCard) loaderCard.style.display = 'none';
+                    alert(err.message);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            }
+
+            function showToast(message = 'Copied') {
+                let toast = document.getElementById('genie-toast');
+                if (!toast) {
+                    toast = document.createElement('div');
+                    toast.id = 'genie-toast';
+                    toast.className = 'toast-notification';
+                    toast.innerHTML = `
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        <span id="genie-toast-msg">${message}</span>
+                    `;
+                    document.body.appendChild(toast);
+                } else {
+                    document.getElementById('genie-toast-msg').innerText = message;
+                }
+                
+                toast.classList.add('show');
+                if (window._toastTimeout) clearTimeout(window._toastTimeout);
+                window._toastTimeout = setTimeout(() => {
+                    toast.classList.remove('show');
+                }, 2000);
+            }
+
+            function copyGeneratedFileCode() {
+                if (!generatedDockerfileData || !generatedDockerfileData.content) return;
+                navigator.clipboard.writeText(generatedDockerfileData.content).then(() => {
+                    showToast('Copied');
+                }).catch(err => {
+                    console.error('Copy failed:', err);
+                });
+            }
+
+            function downloadGeneratedFileCode() {
+                if (!generatedDockerfileData || !generatedDockerfileData.content) return;
+                const blob = new Blob([generatedDockerfileData.content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = generatedDockerfileData.filename || 'Dockerfile';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+
+            async function submitDockerError() {
+                const inputEl = document.getElementById('pipeline-error-input');
+                const errorMsg = inputEl.value.trim();
+                if (!errorMsg || !generatedDockerfileData) return;
+
+                inputEl.value = '';
+                inputEl.disabled = true;
+
+                const chatHistory = document.getElementById('chat-history');
+
+                // User bubble
+                const userBubble = document.createElement('div');
+                userBubble.className = 'chat-bubble user';
+                userBubble.textContent = errorMsg;
+                chatHistory.appendChild(userBubble);
+
+                // Loader bubble
+                const loaderBubble = document.createElement('div');
+                loaderBubble.className = 'chat-bubble ai';
+                loaderBubble.innerHTML = `<span style="color: var(--docker-blue);">Analyzing build logs and compiling patch...</span>`;
+                chatHistory.appendChild(loaderBubble);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                try {
+                    const response = await fetch('/fix-pipeline', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            error_message: errorMsg,
+                            current_pipeline: generatedDockerfileData.content,
+                            spec: { tech_stack: currentRawJson.backend?.language || currentRawJson.frontend?.language },
+                            analysis: currentRawJson,
+                            model: document.getElementById('model-select').value
+                        })
+                    });
+
+                    chatHistory.removeChild(loaderBubble);
+
+                    if (!response.ok) throw new Error('AI repair service failed.');
+
+                    const data = await response.json();
+
+                    // AI Response bubble
+                    const aiBubble = document.createElement('div');
+                    aiBubble.className = 'chat-bubble ai';
+                    aiBubble.innerHTML = data.message || data.explanation || 'Patch generated. Please review the updated content.';
+                    chatHistory.appendChild(aiBubble);
+
+                    // If the engine returned code, update the display!
+                    if (data.content) {
+                        generatedDockerfileData.content = data.content;
+                        document.getElementById('gen-code-content').textContent = data.content;
+                    }
+
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+                } catch (err) {
+                    if (chatHistory.contains(loaderBubble)) chatHistory.removeChild(loaderBubble);
+                    const errBubble = document.createElement('div');
+                    errBubble.className = 'chat-bubble err';
+                    errBubble.textContent = "Error: " + err.message;
+                    chatHistory.appendChild(errBubble);
+                    chatHistory.scrollTop = chatHistory.scrollHeight;
+                } finally {
+                    inputEl.disabled = false;
+                    inputEl.focus();
+                }
+            }
+
+            // Auth Modal Injection
+            document.body.insertAdjacentHTML('beforeend', `
+<style>
+/* From Uiverse.io by shadyeljokers */ 
+.auth-neon-container {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0, 238, 255, 0.25), inset 0 0 30px rgba(0, 0, 0, 0.9);
+  background: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-neon-container span {
+  position: absolute;
+  left: 0;
+  width: 32px;
+  height: 6px;
+  background: #2c4766;
+  border-radius: 80px;
+  transform-origin: 220px;
+  transform: rotate(calc(var(--i) * (360deg / 50)));
+  animation: neonBlink 3s linear infinite;
+  animation-delay: calc(var(--i) * (3s / 50));
+}
+
+@keyframes neonBlink {
+  0% {
+    background: #0ef;
+    box-shadow: 0 0 10px #0ef;
+  }
+  25% {
+    background: #2c4766;
+    box-shadow: none;
+  }
+}
+
+.neon-login-box {
+  position: absolute;
+  width: 85%;
+  max-width: 320px;
+  z-index: 10;
+  padding: 10px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.neon-login-box h2 {
+  font-size: 1.6em;
+  color: #0ef;
+  text-align: center;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 238, 255, 0.5);
+}
+
+.neon-input-box {
+  position: relative;
+  margin: 14px 0;
+  text-align: left;
+}
+
+.neon-input-box input {
+  width: 100%;
+  height: 44px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px solid #2c4766;
+  outline: none;
+  border-radius: 40px;
+  font-size: 0.95em;
+  color: #fff;
+  padding: 0 18px;
+  transition: 0.3s ease;
+  box-sizing: border-box;
+}
+
+.neon-input-box input:focus {
+  border-color: #0ef;
+  box-shadow: 0 0 12px rgba(0, 238, 255, 0.3);
+}
+
+.neon-input-box input:not(:placeholder-shown) ~ label,
+.neon-input-box input:focus ~ label {
+  top: -9px;
+  font-size: 0.75em;
+  background: #111827;
+  padding: 0 8px;
+  color: #0ef;
+  border-radius: 4px;
+}
+
+.neon-input-box label {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  font-size: 0.85em;
+  pointer-events: none;
+  transition: 0.3s ease;
+  color: #94a3b8;
+}
+
+.neon-btn {
+  width: 100%;
+  height: 42px;
+  background: #0ef;
+  border: none;
+  outline: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-size: 0.95em;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+  box-shadow: 0 0 15px rgba(0, 238, 255, 0.4);
+}
+
+.neon-btn:hover {
+  background: #38bdf8;
+  box-shadow: 0 0 25px rgba(0, 238, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.neon-signup-link {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.82em;
+  color: #94a3b8;
+}
+
+.neon-signup-link a {
+  color: #0ef;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.neon-signup-link a:hover {
+  text-decoration: underline;
+}
+
+.neon-cancel-link {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.neon-cancel-link a {
+  font-size: 0.75em;
+  color: #64748b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.neon-cancel-link a:hover {
+  color: #94a3b8;
+}
+</style>
+        <div id="auth-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div class="auth-neon-container" id="auth-neon-spans-box-docker">
+            <div class="neon-login-box">
+              <h2 id="auth-form-title">LOGIN</h2>
+              <div id="auth-main-form">
+                <div class="neon-input-box">
+                  <input type="email" id="auth-email" placeholder=" " required autocomplete="off">
+                  <label>Email</label>
+                </div>
+                
+                <div class="neon-input-box" id="auth-password-group">
+                  <input type="password" id="auth-pass" placeholder=" " required autocomplete="off">
+                  <label>Password</label>
+                </div>
+
+                <div class="neon-input-box" id="auth-otp-group" style="display: none;">
+                  <input type="text" id="auth-otp" placeholder=" " maxlength="6" style="letter-spacing: 6px; font-weight:800; text-align:center;">
+                  <label>6-Digit OTP</label>
+                </div>
+                
+                <p id="auth-err" style="color:#ef4444; font-size:0.75rem; min-height:18px; text-align:center; margin:2px 0;"></p>
+                
+                <button class="neon-btn" id="auth-submit-btn" onclick="submitAuth('login')">
+                  Authorize
+                </button>
+
+                <div class="neon-signup-link" id="auth-signup-text">
+                  New developer? <a onclick="submitAuth('signup')">Sign Up</a>
+                </div>
+                
+                <div class="neon-cancel-link">
+                  <a onclick="closeAuthModal()">Cancel</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div style="background: rgba(13, 14, 24, 0.95); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; width: 90%; max-width: 420px; padding: 2.2rem; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2), inset 0 1px 1px rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem; position: relative;">
+            
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.05) 70%); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </div>
+
+            <div>
+              <h3 style="font-size: 1.35rem; font-weight: 700; color: #fff; margin: 0 0 0.4rem; letter-spacing: -0.5px;">Terminate Session</h3>
+              <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin: 0;">Are you sure you want to disconnect and log out of your account?</p>
+            </div>
+
+            <div id="logout-user-badge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; color: #cbd5e1; font-family: monospace;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
+              <span id="logout-user-email">Active User</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; width: 100%; margin-top: 0.5rem;">
+              <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                Stay Signed In
+              </button>
+              <button onclick="confirmLogout()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #ffffff; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35); transition: all 0.2s;">
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>`);
+
+            (function initNeonSpansDocker() {
+                const container = document.getElementById('auth-neon-spans-box-docker');
+                if (container && !container.querySelector('span')) {
+                    for (let i = 0; i < 50; i++) {
+                        const span = document.createElement('span');
+                        span.style.setProperty('--i', i);
+                        container.appendChild(span);
+                    }
+                }
+            })();
+
+            function showAuthModal() {
+                if (localStorage.getItem("genie_auth_token")) {
+                    showLogoutModal();
+                    return;
+                }
+                closeAuthModal();
+                document.getElementById('auth-overlay').style.display = 'flex';
+            }
+
+            function showLogoutModal() {
+                const email = localStorage.getItem("genie_user_email") || "Active User";
+                const emailEl = document.getElementById('logout-user-email');
+                if (emailEl) emailEl.innerText = email;
+                const modal = document.getElementById('logout-overlay');
+                if (modal) modal.style.display = 'flex';
+            }
+
+            function closeLogoutModal() {
+                const modal = document.getElementById('logout-overlay');
+                if (modal) modal.style.display = 'none';
+            }
+
+            function confirmLogout() {
+                localStorage.removeItem("genie_auth_token");
+                localStorage.removeItem("genie_user_email");
+                closeLogoutModal();
+                const btn = document.getElementById('global-auth-btn');
+                if (btn) btn.innerText = "Sign In / Sign Up";
+            }
+
+            function closeAuthModal() {
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('auth-password-group').style.display = 'block';
+                document.getElementById('auth-otp-group').style.display = 'none';
+                document.getElementById('auth-signup-text').style.display = 'block';
+                document.getElementById('auth-err').innerText = '';
+                document.getElementById('auth-pass').value = '';
+                document.getElementById('auth-otp').value = '';
+                document.getElementById('auth-form-title').innerText = 'LOGIN';
+
+                const btn = document.getElementById('auth-submit-btn');
+                btn.innerText = 'Authorize';
+                btn.onclick = () => submitAuth('login');
+            }
+
+            let pendingAuthEmail = "";
+
+            async function submitAuth(mode = 'login') {
+                const email = document.getElementById('auth-email').value.trim().toLowerCase();
+                const pass = document.getElementById('auth-pass').value;
+                const err = document.getElementById('auth-err');
+                if (!email || !pass) { err.innerText = "Credentials required."; return; }
+
+                err.innerText = "Authenticating...";
+                try {
+                    let res = await fetch(`/api/auth/${mode}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: pass })
+                    });
+
+                    if (res.status === 404 && mode === 'login') {
+                        res = await fetch(`/api/auth/signup`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email, password: pass })
+                        });
+                    }
+
+                    const data = await res.json();
+                    if (res.ok && data.access_token) {
+                        localStorage.setItem("genie_auth_token", data.access_token);
+                        localStorage.setItem("genie_user_email", email);
+                        document.getElementById('auth-overlay').style.display = 'none';
+                        const btn = document.getElementById('global-auth-btn');
+                        if (btn) {
+                            btn.innerText = email.split('@')[0];
+                        }
+                    } else if (res.ok) {
+                        pendingAuthEmail = email;
+                        document.getElementById('auth-password-group').style.display = 'none';
+                        document.getElementById('auth-signup-text').style.display = 'none';
+                        document.getElementById('auth-otp-group').style.display = 'block';
+                        document.getElementById('auth-form-title').innerText = 'VERIFY OTP';
+                        err.style.color = "#0ef";
+                        err.innerText = data.detail || "Enter OTP sent to email";
+
+                        const btn = document.getElementById('auth-submit-btn');
+                        btn.innerText = 'Validate Code';
+                        btn.onclick = () => verifyOtp();
+                    } else {
+                        err.style.color = "#ef4444";
+                        err.innerText = data.detail || "Authentication Failed.";
+                    }
+                } catch (e) {
+                    err.style.color = "#ef4444";
+                    err.innerText = "Network execution aborted.";
+                }
+            }
+
+            async function verifyOtp() {
+                const email = pendingAuthEmail || document.getElementById('auth-email').value.trim().toLowerCase();
+                const code = document.getElementById('auth-otp').value.trim();
+                const err = document.getElementById('auth-err');
+                if (!code) { err.innerText = "OTP Required."; return; }
+
+                err.style.color = "#0ef";
+                err.innerText = "Verifying Code...";
+
+                try {
+                    const res = await fetch('/api/auth/verify-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, code: code })
+                    });
+                    const data = await res.json();
+
+                    if (res.ok && data.access_token) {
+                        localStorage.setItem("genie_auth_token", data.access_token);
+                        localStorage.setItem("genie_user_email", email);
+                        document.getElementById('auth-overlay').style.display = 'none';
+                        const btn = document.getElementById('global-auth-btn');
+                        if (btn) btn.innerText = email.split('@')[0];
+                    } else {
+                        err.style.color = "#ef4444";
+                        err.innerText = data.detail || "Verification Failed.";
+                    }
+                } catch (e) {
+                    err.style.color = "#ef4444";
+                    err.innerText = "Network execution aborted.";
+                }
+            }
+
+            function toggleSidebar() {
+                document.querySelector('.sidebar').classList.toggle('closed');
+                document.body.classList.toggle('sidebar-closed');
+            }
+
+            function setTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('genie_theme', theme);
+                const checkbox = document.getElementById('theme-switch-checkbox');
+                if (checkbox) {
+                    checkbox.checked = (theme === 'dark');
+                }
+            }
+
+            function onThemeToggleChange(checkbox) {
+                const nextTheme = checkbox.checked ? 'dark' : 'light';
+                setTheme(nextTheme);
+            }
+
+            function toggleTheme() {
+                const current = document.documentElement.getAttribute('data-theme') || 'dark';
+                const next = current === 'dark' ? 'light' : 'dark';
+                setTheme(next);
+            }
+
+            window.onload = () => {
+                // Initialize theme (Default dark)
+                const savedTheme = localStorage.getItem('genie_theme') || 'dark';
+                setTheme(savedTheme);
+
+                const token = localStorage.getItem("genie_auth_token");
+                if (token) {
+                    const btn = document.getElementById('global-auth-btn');
+                    if (btn) {
+                        try {
+                            const payload = JSON.parse(atob(token.split('.')[1]));
+                            if (payload && payload.sub) {
+                                btn.innerHTML = `
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    ${payload.sub.split('@')[0]}
+                                `;
+                            }
+                        } catch (e) { }
+                    }
+                }
+            };
+        </script>
+</body>
+
+</html>

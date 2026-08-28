@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "clouds": [
+    {
+      "id": "cloud.aws",
+      "name": "Amazon Web Services",
+      "auth_methods": ["access_key_secret", "oidc_role_assume", "iam_instance_profile"],
+      "recommended_auth": "oidc_role_assume",
+      "cli_tool": "aws-cli",
+      "deployment_targets": ["target.ec2", "target.ecs", "target.eks", "target.lambda", "target.elastic_beanstalk"],
+      "required_secrets_by_auth": {
+        "access_key_secret": ["secret.aws_access_key_id", "secret.aws_secret_access_key"],
+        "oidc_role_assume": ["secret.aws_role_arn"],
+        "iam_instance_profile": []
+      },
+      "notes": "OIDC role assumption avoids storing long-lived keys in CI; strongly preferred for GitHub Actions via aws-actions/configure-aws-credentials."
+    },
+    {
+      "id": "cloud.azure",
+      "name": "Microsoft Azure",
+      "auth_methods": ["service_principal", "oidc_federated"],
+      "recommended_auth": "oidc_federated",
+      "cli_tool": "azure-cli",
+      "deployment_targets": ["target.azure_vm", "target.aks", "target.azure_app_service", "target.azure_functions"],
+      "required_secrets_by_auth": {
+        "service_principal": ["secret.azure_client_id", "secret.azure_client_secret", "secret.azure_tenant_id"],
+        "oidc_federated": ["secret.azure_client_id", "secret.azure_tenant_id", "secret.azure_subscription_id"]
+      },
+      "notes": "azure/login action supports federated OIDC credentials natively, no client secret needed."
+    },
+    {
+      "id": "cloud.gcp",
+      "name": "Google Cloud Platform",
+      "auth_methods": ["service_account_key", "workload_identity_federation"],
+      "recommended_auth": "workload_identity_federation",
+      "cli_tool": "gcloud",
+      "deployment_targets": ["target.gcp_vm", "target.gke", "target.cloud_run", "target.cloud_functions"],
+      "required_secrets_by_auth": {
+        "service_account_key": ["secret.gcp_service_account_key_json"],
+        "workload_identity_federation": ["secret.gcp_workload_identity_provider", "secret.gcp_service_account_email"]
+      },
+      "notes": "Workload Identity Federation avoids exporting a long-lived JSON key entirely."
+    }
+  ]
+}

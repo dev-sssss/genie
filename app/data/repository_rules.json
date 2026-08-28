@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "detection_composites": [
+    {
+      "id": "repo.detect.nextjs",
+      "result_component": "framework.nextjs",
+      "requires_any": ["signal.file.next_config", "signal.dependency.next"],
+      "confidence_if_all_present": 0.95,
+      "confidence_if_partial": 0.65
+    },
+    {
+      "id": "repo.detect.express",
+      "result_component": "framework.express",
+      "requires_any": ["signal.dependency.express"],
+      "excludes": ["signal.file.next_config", "signal.file.nest_cli_json"],
+      "confidence_if_all_present": 0.85
+    },
+    {
+      "id": "repo.detect.nestjs",
+      "result_component": "framework.nestjs",
+      "requires_any": ["signal.file.nest_cli_json", "signal.dependency.nestjs_core"],
+      "confidence_if_all_present": 0.9
+    },
+    {
+      "id": "repo.detect.fastapi",
+      "result_component": "framework.fastapi",
+      "requires_any": ["signal.dependency.fastapi"],
+      "confidence_if_all_present": 0.9
+    },
+    {
+      "id": "repo.detect.django",
+      "result_component": "framework.django",
+      "requires_any": ["signal.dependency.django", "signal.file.manage_py"],
+      "confidence_if_all_present": 0.9
+    },
+    {
+      "id": "repo.detect.spring_boot",
+      "result_component": "framework.spring_boot",
+      "requires_any": ["signal.dependency.spring_boot"],
+      "confidence_if_all_present": 0.9
+    }
+  ],
+  "monorepo_rules": [
+    {
+      "id": "repo.monorepo.detect",
+      "signals": ["signal.file.pnpm_workspace_yaml", "signal.file.lerna_json", "signal.file.turbo_json"],
+      "fallback_signal": "multiple_package_json_in_subdirs",
+      "action": "treat_each_workspace_as_independent_pipeline_target",
+      "notes": "Gen-Pipe should ask which workspace(s) to build a pipeline for, or generate one job per workspace with path filters."
+    }
+  ],
+  "conflict_resolution": {
+    "id": "repo.conflict.multiple_frameworks_detected",
+    "strategy": "highest_confidence_wins",
+    "tie_breaker": "prefer_framework_with_more_specific_signal_over_generic_runtime_signal",
+    "notes": "e.g. framework.nextjs (0.9) beats a bare runtime.node file signal (0.6) even though both fired."
+  }
+}

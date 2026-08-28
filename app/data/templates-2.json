@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0",
+  "_design_note": "Stages are atomic and reusable. Skeletons compose stage ids into an ordered sequence for a specific (tool, runtime, deployment_target) combo. This avoids storing a full pipeline file per combination — extend by adding stages, not by duplicating whole pipelines.",
+  "stage_templates": [
+    {
+      "id": "stage.checkout.github_actions",
+      "tool": "tool.github_actions",
+      "stage_type": "checkout",
+      "order_hint": 1,
+      "yaml_skeleton": "- uses: actions/checkout@v4\n",
+      "requires_vars": []
+    },
+    {
+      "id": "stage.install_deps.node.github_actions",
+      "tool": "tool.github_actions",
+      "stage_type": "install_dependencies",
+      "runtime": "runtime.node",
+      "order_hint": 2,
+      "yaml_skeleton": "- uses: actions/setup-node@v4\n  with:\n    node-version: '{{node_version}}'\n    cache: 'npm'\n- run: npm ci\n",
+      "requires_vars": ["node_version"]
+    },
+    {
+      "id": "stage.test.jest.github_actions",
+      "tool": "tool.github_actions",
+      "stage_type": "test",
+      "test_framework": "test.jest",
+      "order_hint": 3,
+      "yaml_skeleton": "- run: npx jest --ci --coverage\n",
+      "requires_vars": []
+    },
+    {
+      "id": "stage.build.node.github_actions",
+      "tool": "tool.github_actions",
+      "stage_type": "build",
+      "runtime": "runtime.node",
+      "order_hint": 4,
+      "yaml_skeleton": "- run: {{build_command}}\n",
+      "requires_vars": ["build_command"]
+    },
+    {
+      "id": "stage.security.trivy.generic",
+      "tool": null,
+      "stage_type": "security_scan",
+      "security_tool": "security.trivy",
+      "order_hint": 5,
+      "yaml_skeleton": "- name: Trivy image scan\n  uses: aquasecurity/trivy-action@master\n  with:\n    image-ref: '{{image_ref}}'\n    severity: 'CRITICAL,HIGH'\n    exit-code: '1'\n",
+      "requires_vars": ["image_ref"]
+    },
+    {
+      "id": "stage.deploy.ssh.generic",
+      "tool": null,
+      "stage_type": "deploy",
+      "deployment_strategy": "deploy.ssh",
+      "order_hint": 6,
+      "yaml_skeleton": "- name: Deploy over SSH\n  uses: appleboy/ssh-action@v1\n  with:\n    host: {{secret.ssh_host}}\n    username: {{secret.ssh_user}}\n    key: {{secret.ssh_private_key}}\n    script: |\n      cd {{remote_app_path}}\n      git pull origin {{branch}}\n      npm ci --production\n      pm2 restart {{app_name}} || pm2 start {{entry_file}} --name {{app_name}}\n",
+      "requires_vars": ["remote_app_path", "branch", "app_name", "entry_file"]
+    },
+    {
+      "id": "stage.deploy.docker.generic",
+      "tool": null,
+      "stage_type": "deploy",
+      "deployment_strategy": "deploy.docker",
+      "order_hint": 6,
+      "yaml_skeleton": "- name: Build and push image\n  run: |\n    docker build -t {{image_ref}} .\n    echo \"{{secret.docker_registry_password}}\" | docker login -u {{secret.docker_registry_username}} --password-stdin\n    docker push {{image_ref}}\n",
+      "requires_vars": ["image_ref"]
+    },
+    {
+      "id": "stage.deploy.kubectl.generic",
+      "tool": null,
+      "stage_type": "deploy",
+      "deployment_strategy": "deploy.kubernetes",
+      "order_hint": 6,
+      "yaml_skeleton": "- name: Deploy to Kubernetes\n  run: |\n    echo \"{{secret.kubeconfig}}\" | base64 -d > kubeconfig.yaml\n    export KUBECONFIG=kubeconfig.yaml\n    kubectl set image deployment/{{deployment_name}} {{container_name}}={{image_ref}}\n    kubectl rollout status deployment/{{deployment_name}}\n",
+      "requires_vars": ["deployment_name", "container_name", "image_ref"]
+    },
+    {
+      "id": "stage.notify.slack.generic",
+      "tool": null,
+      "stage_type": "notify",
+      "notification_channel": "notify.slack",
+      "order_hint": 7,
+      "yaml_skeleton": "- name: Slack notification\n  if: always()\n  uses: slackapi/slack-github-action@v1\n  with:\n    webhook: {{secret.slack_webhook_url}}\n    webhook-type: incoming-webhook\n    payload: |\n      { \"text\": \"Pipeline ${{ job.status }} for {{repo_name}} on {{branch}}\" }\n",
+      "requires_vars": ["repo_name", "branch"]
+    }
+  ],
+  "pipeline_skeletons": [
+    {
+      "id": "skeleton.ci_cd.node.github_actions.ec2_ssh",
+      "tool": "tool.github_actions",
+      "runtime": "runtime.node",
+      "deployment_target": "target.ec2",
+      "deployment_strategy": "deploy.ssh",
+      "stage_sequence": [
+        "stage.checkout.github_actions",
+        "stage.install_deps.node.github_actions",
+        "stage.test.jest.github_actions",
+        "stage.build.node.github_actions",
+        "stage.deploy.ssh.generic",
+        "stage.notify.slack.generic"
+      ]
+    },
+    {
+      "id": "skeleton.ci_cd.node.github_actions.docker_ecs",
+      "tool": "tool.github_actions",
+      "runtime": "runtime.node",
+      "deployment_target": "target.ecs",
+      "deployment_strategy": "deploy.docker",
+      "stage_sequence": [
+        "stage.checkout.github_actions",
+        "stage.install_deps.node.github_actions",
+        "stage.test.jest.github_actions",
+        "stage.deploy.docker.generic",
+        "stage.security.trivy.generic",
+        "stage.notify.slack.generic"
+      ]
+    }
+  ]
+}

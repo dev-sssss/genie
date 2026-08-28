@@ -1,0 +1,79 @@
+{
+  "schema_version": "1.0",
+  "testing_frameworks": [
+    {
+      "id": "test.jest",
+      "name": "Jest",
+      "runtime": "runtime.node",
+      "type": "unit",
+      "run_command": "npx jest --ci --coverage",
+      "config_files": ["jest.config.js", "jest.config.ts"],
+      "compatible_frameworks": ["framework.express", "framework.nextjs", "framework.nestjs", "framework.react", "framework.angular"]
+    },
+    {
+      "id": "test.vitest",
+      "name": "Vitest",
+      "runtime": "runtime.node",
+      "type": "unit",
+      "run_command": "npx vitest run",
+      "config_files": ["vitest.config.ts", "vite.config.ts"],
+      "compatible_frameworks": ["framework.vue", "framework.react"]
+    },
+    {
+      "id": "test.pytest",
+      "name": "Pytest",
+      "runtime": "runtime.python",
+      "type": "unit",
+      "run_command": "pytest --maxfail=1 --disable-warnings",
+      "config_files": ["pytest.ini", "pyproject.toml", "setup.cfg"],
+      "compatible_frameworks": ["framework.fastapi", "framework.django", "framework.flask"]
+    },
+    {
+      "id": "test.playwright",
+      "name": "Playwright",
+      "runtime": "runtime.node",
+      "type": "e2e",
+      "run_command": "npx playwright test",
+      "config_files": ["playwright.config.ts"],
+      "compatible_frameworks": ["framework.nextjs", "framework.react", "framework.vue"],
+      "notes": "Needs 'npx playwright install --with-deps' as a prerequisite CI step."
+    },
+    {
+      "id": "test.cypress",
+      "name": "Cypress",
+      "runtime": "runtime.node",
+      "type": "e2e",
+      "run_command": "npx cypress run",
+      "config_files": ["cypress.config.js"],
+      "compatible_frameworks": ["framework.react", "framework.angular", "framework.vue"]
+    },
+    {
+      "id": "test.selenium",
+      "name": "Selenium",
+      "runtime": null,
+      "type": "e2e",
+      "run_command": "varies by language binding",
+      "config_files": [],
+      "compatible_frameworks": ["framework.spring_boot", "framework.django", "framework.flask"],
+      "notes": "Needs a browser + driver binary in the CI runner (or a Selenium Grid/Selenoid container)."
+    },
+    {
+      "id": "test.junit",
+      "name": "JUnit",
+      "runtime": "runtime.java",
+      "type": "unit",
+      "run_command": "mvn test",
+      "config_files": ["pom.xml"],
+      "compatible_frameworks": ["framework.spring_boot"]
+    },
+    {
+      "id": "test.nunit",
+      "name": "NUnit",
+      "runtime": "runtime.dotnet",
+      "type": "unit",
+      "run_command": "dotnet test",
+      "config_files": ["*.csproj"],
+      "compatible_frameworks": ["framework.aspnet"]
+    }
+  ]
+}

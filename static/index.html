@@ -1,0 +1,3907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PipelineGenie - Repo Analyzer</title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Dark Theme (Default) */
+            --bg-color: #0b0f19;
+            --bg-secondary: #111827;
+            --card-bg: rgba(17, 24, 39, 0.75);
+            --card-bg-solid: #111827;
+            --card-hover: rgba(31, 41, 55, 0.8);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(56, 189, 248, 0.35);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --accent-primary: #0284c7;
+            --accent-primary-hover: #0369a1;
+            --accent-cyan: #38bdf8;
+            --accent-cyan-glow: rgba(56, 189, 248, 0.2);
+            --accent-emerald: #10b981;
+            --accent-emerald-bg: rgba(16, 185, 129, 0.1);
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: rgba(245, 158, 11, 0.1);
+            --accent-red: #f43f5e;
+            --accent-red-bg: rgba(244, 63, 94, 0.1);
+            --code-bg: #030712;
+            --code-text: #e2e8f0;
+            --sidebar-bg: rgba(15, 23, 42, 0.9);
+            --input-bg: rgba(3, 7, 18, 0.7);
+            --input-border: rgba(255, 255, 255, 0.12);
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            --header-gradient: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+        }
+
+        [data-theme="light"] {
+            /* Light Theme - Crisp & High-Contrast */
+            --bg-color: #f1f5f9;
+            --bg-secondary: #ffffff;
+            --card-bg: #ffffff;
+            --card-bg-solid: #ffffff;
+            --card-hover: #f8fafc;
+            --border-color: #cbd5e1;
+            --border-highlight: #0284c7;
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --text-muted: #64748b;
+            --accent-primary: #0284c7;
+            --accent-primary-hover: #0369a1;
+            --accent-cyan: #0284c7;
+            --accent-cyan-glow: rgba(2, 132, 199, 0.15);
+            --accent-emerald: #059669;
+            --accent-emerald-bg: #ecfdf5;
+            --accent-orange: #d97706;
+            --accent-orange-bg: #fffbeb;
+            --accent-red: #e11d48;
+            --accent-red-bg: #fff1f2;
+            --code-bg: #0f172a;
+            --code-text: #f8fafc;
+            --sidebar-bg: #ffffff;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e1;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
+            --header-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(56, 189, 248, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(99, 102, 241, 0.05) 0%, transparent 40%);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2.5rem 1.5rem 2.5rem 290px;
+            transition: background 0.3s ease, color 0.3s ease, padding-left 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        body.sidebar-closed {
+            padding-left: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Top Action Bar Buttons */
+        .top-action-btn {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 8px 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            height: 38px;
+        }
+        .top-action-btn:hover {
+            background: var(--card-hover);
+            border-color: var(--border-highlight);
+            color: var(--accent-cyan);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .header-title-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 0.35rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        h1 span {
+            background: var(--header-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            font-weight: 400;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── Mode Selection Buttons ── */
+        .mode-container {
+            display: flex;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        @media (max-width: 600px) {
+            .mode-container {
+                flex-direction: column;
+            }
+        }
+
+        .mode-btn {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-highlight);
+            background: var(--card-hover);
+        }
+
+        .mode-btn svg {
+            width: 40px;
+            height: 40px;
+            color: var(--accent-cyan);
+            stroke-width: 1.75;
+        }
+
+        .mode-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-primary);
+        }
+
+        .mode-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* ── Modern Search Card ── */
+        .search-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+            transition: all 0.2s ease;
+            position: relative;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .search-card:focus-within {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border-highlight);
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .input-with-button {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        input[type="text"], input[type="password"] {
+            flex-grow: 1;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: 'Fira Code', monospace;
+            pointer-events: auto !important;
+            user-select: text !important;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+        }
+
+        button.primary-btn, button#analyze-btn {
+            background: var(--accent-primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow-sm);
+            font-family: 'Inter', sans-serif;
+        }
+
+        button.primary-btn:hover, button#analyze-btn:hover {
+            background: var(--accent-primary-hover);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-1px);
+        }
+
+        /* Professional Stepper Loader */
+        .loader-wrap {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 3rem 0;
+        }
+
+        .spinner-container {
+            width: 44px;
+            height: 44px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent-cyan);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        /* Results Pane */
+        .results-card {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+            animation: slideUp 0.3s ease-out;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .result-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary:hover {
+            background: var(--card-hover);
+            border-color: var(--border-highlight);
+            color: var(--text-primary);
+        }
+
+        /* Grid for JSON and summary badges */
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .summary-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0.85rem;
+        }
+
+        .summary-tile {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.9rem 1rem;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            transition: all 0.2s ease;
+        }
+
+        .summary-tile:hover {
+            border-color: var(--border-highlight);
+        }
+
+        .tile-label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .tile-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        /* Badge Tags */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 600;
+            padding: 0.25rem 0.65rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+        }
+
+        .badge.emerald {
+            background: var(--accent-emerald-bg);
+            color: var(--accent-emerald);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge.blue {
+            background: var(--accent-cyan-glow);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .badge.orange {
+            background: var(--accent-orange-bg);
+            color: var(--accent-orange);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* ── Code Block & Panels ── */
+        .json-editor-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .json-header-tabs {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.65rem 1.25rem;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        pre {
+            background-color: transparent;
+            margin: 0;
+            padding: 1.25rem;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--code-text);
+        }
+
+        /* JSON formatting colors */
+        .json-key { color: var(--accent-cyan); }
+        .json-string { color: var(--accent-emerald); }
+        .json-number { color: #c084fc; }
+        .json-boolean { color: var(--accent-orange); }
+        .json-null { color: var(--accent-red); }
+
+        /* Error Banner */
+        .error-banner {
+            display: none;
+            background: var(--accent-red-bg);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-left: 4px solid var(--accent-red);
+            border-radius: 10px;
+            padding: 1rem 1.25rem;
+            color: var(--accent-red);
+            font-size: 0.88rem;
+            margin-bottom: 1.5rem;
+            align-items: flex-start;
+            gap: 0.75rem;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .error-banner svg {
+            flex-shrink: 0;
+            margin-top: 0.1rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: auto;
+            padding: 2rem 0;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            border-bottom: 2px solid var(--accent-blue);
+        }
+
+        /* Animations */
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .input-with-button {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ── Wizard Form Control Enhancements ────────────── */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.85rem center;
+            padding-right: 2.5rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
+            padding-left: 1rem;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: 'Fira Code', monospace;
+        }
+
+        select:focus, input[type="number"]:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 0 3px var(--accent-cyan-glow);
+        }
+
+        input[type="number"] {
+            background-color: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.92rem;
+            color: var(--text-primary);
+            outline: none;
+            transition: all 0.2s ease;
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* Wizard Card & Layout */
+        .wizard-card {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2.25rem;
+            box-shadow: var(--shadow-md);
+            margin-top: 2rem;
+            animation: slideUp 0.3s ease-out;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .wizard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .wizard-title {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .steps-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2.5rem;
+            position: relative;
+            padding: 0 10px;
+        }
+
+        .steps-indicator::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--border-color);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .step-bubble {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            position: relative;
+            z-index: 2;
+            transition: all 0.2s ease;
+            font-family: 'Inter', sans-serif;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .step-bubble.active {
+            border-color: var(--accent-cyan);
+            color: #ffffff;
+            background: var(--accent-primary);
+            box-shadow: 0 0 12px var(--accent-cyan-glow);
+        }
+
+        .step-bubble.completed {
+            border-color: var(--accent-emerald);
+            background: var(--accent-emerald);
+            color: #ffffff;
+        }
+
+        .wizard-step-panel {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .wizard-step-panel.active {
+            display: block;
+        }
+
+        .form-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-section-title {
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        /* Toggle & Option Buttons */
+        .toggle-btn-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 0.65rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            user-select: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .toggle-option:hover {
+            border-color: var(--border-highlight);
+            background: var(--card-hover);
+            color: var(--text-primary);
+        }
+
+        .toggle-option.selected {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: #ffffff;
+            font-weight: 700;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Multi-select check grid */
+        .check-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            user-select: none;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .check-item:hover {
+            border-color: var(--border-highlight);
+            background: var(--card-hover);
+            color: var(--text-primary);
+        }
+
+        .check-item.checked {
+            border-color: var(--accent-emerald);
+            background: var(--accent-emerald-bg);
+            color: var(--accent-emerald);
+            font-weight: 600;
+        }
+
+        .check-item input[type="checkbox"] {
+            accent-color: var(--accent-emerald);
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            pointer-events: none;
+        }
+
+        /* Skip Step option checkbox decoration */
+        .step-skip-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--accent-orange);
+            background: var(--accent-orange-bg);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            padding: 0.5rem 0.875rem;
+            border-radius: 8px;
+            width: fit-content;
+        }
+
+        .step-skip-banner input {
+            accent-color: var(--accent-orange);
+        }
+
+        /* Step navigation buttons */
+        .wizard-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        .btn-wizard {
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .disabled-form-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--card-bg);
+            z-index: 10;
+            border-radius: 12px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-orange);
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: 2px dashed rgba(245, 158, 11, 0.4);
+            backdrop-filter: blur(4px);
+        }
+
+        .form-section.skipped .disabled-form-overlay {
+            display: flex;
+        }
+
+        /* Generated payload output style code */
+        .raw-output-box {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        
+        .json-generated-panel {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .json-generated-header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.65rem 1.25rem;
+            font-size: 0.78rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .wizard-btn-accent {
+            background: var(--accent-emerald);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+        }
+
+        .btn-group-right {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .configure-btn-trigger {
+            display: none;
+            background: var(--accent-primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 0.85rem 1.75rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 1.5rem auto 0 auto;
+            box-shadow: var(--shadow-md);
+            transition: all 0.2s ease;
+        }
+        .configure-btn-trigger:hover {
+            background: var(--accent-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Generated Code Card styling */
+        .gen-file-badge {
+            background: var(--accent-cyan-glow);
+            color: var(--accent-cyan);
+            font-family: 'Fira Code', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 0.45rem 0.85rem;
+            border-radius: 8px;
+            width: fit-content;
+            margin-bottom: 1.25rem;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .gen-code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow-x: auto;
+            margin-bottom: 2rem;
+        }
+
+        .gen-code-block pre {
+            padding: 1.5rem;
+            font-size: 0.88rem;
+            color: var(--code-text);
+        }
+
+        .gen-explanation-block {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-cyan);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .gen-explanation-title {
+            color: var(--text-primary);
+            font-size: 0.98rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .gen-explanation-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .gen-explanation-text h3 {
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            margin: 1.25rem 0 0.5rem 0;
+        }
+
+        .gen-explanation-text ul {
+            margin: 0.5rem 0;
+            padding-left: 1.25rem;
+        }
+
+        .gen-explanation-text li {
+            margin-bottom: 0.25rem;
+        }
+
+        /* ── Basic Wizard Single-Page Layout ──────────── */
+        .basic-wizard-section {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-primary);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.25rem;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .basic-wizard-section:hover {
+            border-color: var(--border-highlight);
+            box-shadow: var(--shadow-md);
+        }
+        .basic-wizard-section .section-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px; height: 26px;
+            border-radius: 6px;
+            background: var(--accent-primary);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-right: 0.6rem;
+            flex-shrink: 0;
+        }
+        .section-title-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .basic-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 600px) {
+            .basic-form-grid { grid-template-columns: 1fr; }
+        }
+        .basic-form-grid.single { grid-template-columns: 1fr; }
+        .cmd-input-row { display: flex; flex-direction: column; gap: 0.35rem; }
+        .cmd-input-row label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-secondary); }
+        .cmd-input-row input { width: 100%; }
+
+        /* ── Advanced Settings Toggle ──────────────────── */
+        .adv-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.9rem;
+            margin: 0.5rem 0 1.25rem;
+            background: var(--bg-secondary);
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            color: var(--accent-cyan);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: none;
+        }
+        .adv-toggle-btn:hover {
+            background: var(--card-hover);
+            border-color: var(--accent-cyan);
+        }
+        .adv-toggle-btn .chevron {
+            transition: transform 0.3s ease;
+            display: inline-block;
+        }
+        .adv-toggle-btn.open .chevron { transform: rotate(180deg); }
+
+        /* ── Advanced Panel ────────────────────────────── */
+        .advanced-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .advanced-panel.open { max-height: 8000px; }
+        .adv-section-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+        .adv-section-card .adv-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.85rem;
+        }
+        .adv-section-card .adv-label .letter-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px; height: 22px;
+            border-radius: 5px;
+            background: var(--accent-cyan-glow);
+            color: var(--accent-cyan);
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+        .conditional-hide { display: none !important; }
+
+        /* ── Generate button styling at bottom of wizard ─ */
+        .wizard-generate-row {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .generate-pipeline-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, var(--accent-orange) 0%, #db7f34 100%);
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            padding: 0.85rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(249, 142, 47, 0.25);
+        }
+        .generate-pipeline-trigger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(249, 142, 47, 0.4);
+        }
+    
+        /* ─── Uiverse.io Loader by dexter-st ─── */
+        .loader-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 180px;
+          height: 180px;
+          font-family: "Inter", sans-serif;
+          font-size: 1.2em;
+          font-weight: 300;
+          color: white;
+          border-radius: 50%;
+          background-color: transparent;
+          user-select: none;
+          margin: 1.5rem auto;
+        }
+
+        .loader {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          border-radius: 50%;
+          background-color: transparent;
+          animation: loader-rotate 2s linear infinite;
+          z-index: 0;
+        }
+
+        @keyframes loader-rotate {
+          0% {
+            transform: rotate(90deg);
+            box-shadow:
+              0 10px 20px 0 #fff inset,
+              0 20px 30px 0 #ad5fff inset,
+              0 60px 60px 0 #471eec inset;
+          }
+          50% {
+            transform: rotate(270deg);
+            box-shadow:
+              0 10px 20px 0 #fff inset,
+              0 20px 10px 0 #d60a47 inset,
+              0 40px 60px 0 #311e80 inset;
+          }
+          100% {
+            transform: rotate(450deg);
+            box-shadow:
+              0 10px 20px 0 #fff inset,
+              0 20px 30px 0 #ad5fff inset,
+              0 60px 60px 0 #471eec inset;
+          }
+        }
+
+        .loader-letter {
+          display: inline-block;
+          opacity: 0.4;
+          transform: translateY(0);
+          animation: loader-letter-anim 2s infinite;
+          z-index: 1;
+          border-radius: 50ch;
+          border: none;
+        }
+
+        .loader-letter:nth-child(1) { animation-delay: 0s; }
+        .loader-letter:nth-child(2) { animation-delay: 0.1s; }
+        .loader-letter:nth-child(3) { animation-delay: 0.2s; }
+        .loader-letter:nth-child(4) { animation-delay: 0.3s; }
+        .loader-letter:nth-child(5) { animation-delay: 0.4s; }
+        .loader-letter:nth-child(6) { animation-delay: 0.5s; }
+        .loader-letter:nth-child(7) { animation-delay: 0.6s; }
+        .loader-letter:nth-child(8) { animation-delay: 0.7s; }
+        .loader-letter:nth-child(9) { animation-delay: 0.8s; }
+        .loader-letter:nth-child(10) { animation-delay: 0.9s; }
+
+        @keyframes loader-letter-anim {
+          0%,
+          100% {
+            opacity: 0.4;
+            transform: translateY(0);
+          }
+          20% {
+            opacity: 1;
+            transform: scale(1.15);
+          }
+          40% {
+            opacity: 0.7;
+            transform: translateY(0);
+          }
+        }
+
+        /* ── Modern Sidebar Navigation ── */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 270px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            z-index: 100;
+            padding: 2.2rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+        }
+
+        .sidebar.closed {
+            transform: translateX(-100%);
+        }
+
+        /* ─── 3D LAMP TOGGLE (Sidebar Open/Close) ─── */
+        .lamp-toggle-container {
+          display: flex; flex-direction: column; align-items: center; position: absolute;
+          right: -60px; top: 15px; z-index: 9999;
+          cursor: pointer; user-select: none; perspective: 1000px;
+          transform: scale(0.35); transform-origin: left center;
+          width: 50px; height: 60px;
+        }
+
+        .lamp-toggle-container input { position: absolute; opacity: 0; }
+
+        .lamp-block {
+          position: relative; width: 100px; height: 100px;
+          transform-style: preserve-3d;
+          transform: rotateX(-30deg) rotateY(45deg);
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .face {
+          position: absolute; width: 100px; height: 100px; display: grid;
+          grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr);
+          border: 5px solid #281910; box-sizing: border-box; background: #281910;
+        }
+
+        .face div {
+          width: 100%; height: 100%; background-color: #4f3122; border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        .top { transform: rotateX(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+        .front { transform: rotateY(0deg) translateZ(50px); }
+        .back { transform: rotateY(180deg) translateZ(50px); }
+        .left { transform: rotateY(-90deg) translateZ(50px); }
+        .right { transform: rotateY(90deg) translateZ(50px); }
+
+        .face div:nth-child(3n) { filter: brightness(110%); }
+        .face div:nth-child(7n) { filter: brightness(80%); }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face {
+          border-color: #5b3a24;
+          filter: drop-shadow(0px 0px 25px rgba(255, 174, 66, 0.5));
+        }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face div {
+          background-color: #e58d4a; border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face div:nth-child(3n) { background-color: #f6b17a; }
+        .lamp-toggle-container input:checked ~ .lamp-block .face div:nth-child(7n) { background-color: #b56732; }
+
+        .lamp-toggle-container:hover .lamp-block { transform: rotateX(-30deg) rotateY(55deg); }
+        .lamp-toggle-container:active .lamp-block { transform: rotateX(-30deg) rotateY(45deg) scale(0.9); }
+
+        .sidebar-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .genie-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .genie-nav-btn svg {
+            width: 18px;
+            height: 18px;
+            stroke-width: 2;
+            color: var(--text-muted);
+            transition: color 0.2s ease;
+        }
+
+        .genie-nav-btn:hover {
+            background: var(--card-hover);
+            color: var(--text-primary);
+        }
+        .genie-nav-btn:hover svg {
+            color: var(--accent-cyan);
+        }
+
+        .genie-nav-btn.active {
+            background: var(--accent-primary);
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .genie-nav-btn.active svg {
+            color: #ffffff;
+            stroke: #ffffff;
+        }
+
+        /* ─── UIVERSE THEME SWITCH (Galahhad) ─── */
+        .theme-switch {
+          --toggle-size: 13.5px;
+          --container-width: 5.625em;
+          --container-height: 2.5em;
+          --container-radius: 6.25em;
+          --container-light-bg: #3D7EAE;
+          --container-night-bg: #1D1F2C;
+          --circle-container-diameter: 3.375em;
+          --sun-moon-diameter: 2.125em;
+          --sun-bg: #ECCA2F;
+          --moon-bg: #C4C9D1;
+          --spot-color: #959DB1;
+          --circle-container-offset: calc((var(--circle-container-diameter) - var(--container-height)) / 2 * -1);
+          --stars-color: #fff;
+          --clouds-color: #F3FDFF;
+          --back-clouds-color: #AACADF;
+          --transition: .5s cubic-bezier(0, -0.02, 0.4, 1.25);
+          --circle-transition: .3s cubic-bezier(0, -0.02, 0.35, 1.17);
+          display: inline-flex;
+          align-items: center;
+          user-select: none;
+        }
+
+        .theme-switch, .theme-switch *, .theme-switch *::before, .theme-switch *::after {
+          -webkit-box-sizing: border-box;
+          box-sizing: border-box;
+          margin: 0;
+          padding: 0;
+          font-size: var(--toggle-size);
+        }
+
+        .theme-switch__container {
+          width: var(--container-width);
+          height: var(--container-height);
+          background-color: var(--container-light-bg);
+          border-radius: var(--container-radius);
+          overflow: hidden;
+          cursor: pointer;
+          -webkit-box-shadow: 0em -0.062em 0.062em rgba(0, 0, 0, 0.25), 0em 0.062em 0.125em rgba(255, 255, 255, 0.94);
+          box-shadow: 0em -0.062em 0.062em rgba(0, 0, 0, 0.25), 0em 0.062em 0.125em rgba(255, 255, 255, 0.94);
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+          position: relative;
+        }
+
+        .theme-switch__container::before {
+          content: "";
+          position: absolute;
+          z-index: 1;
+          inset: 0;
+          -webkit-box-shadow: 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset, 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset;
+          box-shadow: 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset, 0em 0.05em 0.187em rgba(0, 0, 0, 0.25) inset;
+          border-radius: var(--container-radius)
+        }
+
+        .theme-switch__checkbox {
+          display: none;
+        }
+
+        .theme-switch__circle-container {
+          width: var(--circle-container-diameter);
+          height: var(--circle-container-diameter);
+          background-color: rgba(255, 255, 255, 0.1);
+          position: absolute;
+          left: var(--circle-container-offset);
+          top: var(--circle-container-offset);
+          border-radius: var(--container-radius);
+          -webkit-box-shadow: inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), 0 0 0 0.625em rgba(255, 255, 255, 0.1), 0 0 0 1.25em rgba(255, 255, 255, 0.1);
+          box-shadow: inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), inset 0 0 0 3.375em rgba(255, 255, 255, 0.1), 0 0 0 0.625em rgba(255, 255, 255, 0.1), 0 0 0 1.25em rgba(255, 255, 255, 0.1);
+          display: -webkit-box;
+          display: -ms-flexbox;
+          display: flex;
+          -webkit-transition: var(--circle-transition);
+          -o-transition: var(--circle-transition);
+          transition: var(--circle-transition);
+          pointer-events: none;
+        }
+
+        .theme-switch__sun-moon-container {
+          pointer-events: auto;
+          position: relative;
+          z-index: 2;
+          width: var(--sun-moon-diameter);
+          height: var(--sun-moon-diameter);
+          margin: auto;
+          border-radius: var(--container-radius);
+          background-color: var(--sun-bg);
+          -webkit-box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #a1872a inset;
+          box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #a1872a inset;
+          -webkit-filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25)) drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25));
+          filter: drop-shadow(0.062em 0.125em 0.125em rgba(0, 0, 0, 0.25)) drop-shadow(0em 0.062em 0.125em rgba(0, 0, 0, 0.25));
+          overflow: hidden;
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+        }
+
+        .theme-switch__moon {
+          -webkit-transform: translateX(100%);
+          -ms-transform: translateX(100%);
+          transform: translateX(100%);
+          width: 100%;
+          height: 100%;
+          background-color: var(--moon-bg);
+          border-radius: inherit;
+          -webkit-box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #969696 inset;
+          box-shadow: 0.062em 0.062em 0.062em 0em rgba(254, 255, 239, 0.61) inset, 0em -0.062em 0.062em 0em #969696 inset;
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+          position: relative;
+        }
+
+        .theme-switch__spot {
+          position: absolute;
+          top: 0.75em;
+          left: 0.312em;
+          width: 0.75em;
+          height: 0.75em;
+          border-radius: var(--container-radius);
+          background-color: var(--spot-color);
+          -webkit-box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset;
+          box-shadow: 0em 0.0312em 0.062em rgba(0, 0, 0, 0.25) inset;
+        }
+
+        .theme-switch__spot:nth-of-type(2) {
+          width: 0.375em;
+          height: 0.375em;
+          top: 0.937em;
+          left: 1.375em;
+        }
+
+        .theme-switch__spot:nth-last-of-type(3) {
+          width: 0.25em;
+          height: 0.25em;
+          top: 0.312em;
+          left: 0.812em;
+        }
+
+        .theme-switch__clouds {
+          width: 1.25em;
+          height: 1.25em;
+          background-color: var(--clouds-color);
+          border-radius: var(--container-radius);
+          position: absolute;
+          bottom: -0.625em;
+          left: 0.312em;
+          -webkit-box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--back-clouds-color);
+          box-shadow: 0.937em 0.312em var(--clouds-color), -0.312em -0.312em var(--back-clouds-color), 1.437em 0.375em var(--clouds-color), 0.5em -0.125em var(--back-clouds-color), 2.187em 0 var(--clouds-color), 1.25em -0.062em var(--back-clouds-color), 2.937em 0.312em var(--clouds-color), 2em -0.312em var(--back-clouds-color), 3.625em -0.062em var(--clouds-color), 2.625em 0em var(--back-clouds-color), 4.5em -0.312em var(--clouds-color), 3.375em -0.437em var(--back-clouds-color), 4.625em -1.75em 0 0.437em var(--clouds-color), 4em -0.625em var(--back-clouds-color), 4.125em -2.125em 0 0.437em var(--back-clouds-color);
+          -webkit-transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+          -o-transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+          transition: 0.5s cubic-bezier(0, -0.02, 0.4, 1.25);
+        }
+
+        .theme-switch__stars-container {
+          position: absolute;
+          color: var(--stars-color);
+          top: -100%;
+          left: 0.312em;
+          width: 2.75em;
+          height: auto;
+          -webkit-transition: var(--transition);
+          -o-transition: var(--transition);
+          transition: var(--transition);
+        }
+
+        /* actions */
+        .theme-switch__checkbox:checked + .theme-switch__container {
+          background-color: var(--container-night-bg);
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container {
+          left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter));
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__circle-container:hover {
+          left: calc(100% - var(--circle-container-offset) - var(--circle-container-diameter) - 0.187em);
+        }
+
+        .theme-switch__circle-container:hover {
+          left: calc(var(--circle-container-offset) + 0.187em);
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__moon {
+          -webkit-transform: translate(0);
+          -ms-transform: translate(0);
+          transform: translate(0);
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__clouds {
+          bottom: -4.062em;
+        }
+
+        .theme-switch__checkbox:checked + .theme-switch__container .theme-switch__stars-container {
+          top: 50%;
+          -webkit-transform: translateY(-50%);
+          -ms-transform: translateY(-50%);
+          transform: translateY(-50%);
+        }
+
+        /* Toast Notification */
+        .toast-notification {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.92);
+            color: #ffffff;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            z-index: 99999;
+            opacity: 0;
+            transform: translateY(12px) scale(0.96);
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .toast-notification svg {
+            color: var(--accent-emerald);
+            flex-shrink: 0;
+        }
+    </style>
+    <link rel="icon" href="/static/genie_logo.png" type="image/png">
+</head>
+<body>
+    <!-- Professional Sidebar Navigation -->
+    <nav class="sidebar">
+        <label class="lamp-toggle-container" title="Toggle Sidebar">
+            <input type="checkbox" onchange="toggleSidebar()" checked="checked">
+            <div class="lamp-block">
+                <div class="face front"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face back"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face right"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face left"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face top"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="face bottom"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+            </div>
+        </label>
+        <script>
+            function toggleSidebar() {
+                document.querySelector('.sidebar').classList.toggle('closed');
+                document.body.classList.toggle('sidebar-closed');
+            }
+        </script>
+        <div class="sidebar-header">
+            <h2 class="sidebar-title">PipelineGenie</h2>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/pipeline" class="genie-nav-btn active">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                Pipeline Architect
+            </a>
+            <a href="/docker" class="genie-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17H2c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h20c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2z"></path><path d="M6 13h12"></path></svg>
+                Docker Factory
+            </a>
+        </div>
+        <div style="margin-top: auto; display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="/chat" class="genie-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                Genie Assistant
+            </a>
+            <a href="/" class="genie-nav-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                Portal Home
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Top Action Bar inside page flow -->
+        <div style="width: 100%; display: flex; justify-content: flex-end; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <!-- Galahhad Theme Switcher -->
+            <label class="theme-switch" title="Toggle Light / Dark Mode">
+                <input type="checkbox" id="theme-switch-checkbox" class="theme-switch__checkbox" onchange="onThemeToggleChange(this)">
+                <div class="theme-switch__container">
+                    <div class="theme-switch__clouds"></div>
+                    <div class="theme-switch__stars-container">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 144 55" fill="none" style="width:100%; height:auto;">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M138.5 24C138.224 24 138 23.7761 138 23.5C138 23.2239 138.224 23 138.5 23C138.776 23 139 23.2239 139 23.5C139 23.7761 138.776 24 138.5 24ZM134.5 29C134.224 29 134 28.7761 134 28.5C134 28.2239 134.224 28 134.5 28C134.776 28 135 28.2239 135 28.5C135 28.7761 134.776 29 134.5 29ZM129.5 21C129.224 21 129 20.7761 129 20.5C129 20.2239 129.224 20 129.5 20C129.776 20 130 20.2239 130 20.5C130 20.7761 129.776 21 129.5 21ZM124.5 26C124.224 26 124 25.7761 124 25.5C124 25.2239 124.224 25 124.5 25C124.776 25 125 25.2239 125 25.5C125 25.7761 124.776 26 124.5 26ZM119.5 17C119.224 17 119 16.7761 119 16.5C119 16.2239 119.224 16 119.5 16C119.776 16 120 16.2239 120 16.5C120 16.7761 119.776 17 119.5 17ZM114.5 24C114.224 24 114 23.7761 114 23.5C114 23.2239 114.224 23 114.5 23C114.776 23 115 23.2239 115 23.5C115 23.7761 114.776 24 114.5 24ZM109.5 15C109.224 15 109 14.7761 109 14.5C109 14.2239 109.224 14 109.5 14C109.776 14 110 14.2239 110 14.5C110 14.7761 109.776 15 109.5 15ZM104.5 22C104.224 22 104 21.7761 104 21.5C104 21.2239 104.224 21 104.5 21C104.776 21 105 21.2239 105 21.5C105 21.7761 104.776 22 104.5 22ZM99.5 13C99.2239 13 99 12.7761 99 12.5C99 12.2239 99.2239 12 99.5 12C99.7761 12 100 12.2239 100 12.5C100 12.7761 99.7761 13 99.5 13ZM94.5 20C94.2239 20 94 19.7761 94 19.5C94 19.2239 94.2239 19 94.5 19C94.7761 19 95 19.2239 95 19.5C95 19.7761 94.7761 20 94.5 20ZM89.5 11C89.2239 11 89 10.7761 89 10.5C89 10.2239 89.2239 10 89.5 10C89.7761 10 90 10.2239 90 10.5C90 10.7761 89.7761 11 89.5 11ZM84.5 18C84.2239 18 84 17.7761 84 17.5C84 17.2239 84.2239 17 84.5 17C84.7761 17 85 17.2239 85 17.5C85 17.7761 84.7761 18 84.5 18ZM79.5 9C79.2239 9 79 8.77614 79 8.5C79 8.22386 79.2239 8 79.5 8C79.7761 8 80 8.22386 80 8.5C80 8.77614 79.7761 9 79.5 9ZM74.5 16C74.2239 16 74 15.7761 74 15.5C74 15.2239 74.2239 15 74.5 15C74.7761 15 75 15.2239 75 15.5C75 15.7761 74.7761 16 74.5 16ZM69.5 7C69.2239 7 69 6.77614 69 6.5C69 6.22386 69.2239 6 69.5 6C69.7761 6 70 6.22386 70 6.5C70 6.77614 69.7761 7 69.5 7ZM64.5 14C64.2239 14 64 13.7761 64 13.5C64 13.2239 64.2239 13 64.5 13C64.7761 13 65 13.2239 65 13.5C65 13.7761 64.7761 14 64.5 14ZM59.5 5C59.2239 5 59 4.77614 59 4.5C59 4.22386 59.2239 4 59.5 4C59.7761 4 60 4.22386 60 4.5C60 4.77614 59.7761 5 59.5 5ZM54.5 12C54.2239 12 54 11.7761 54 11.5C54 11.2239 54.2239 11 54.5 11C54.7761 11 55 11.2239 55 11.5C55 11.7761 54.7761 12 54.5 12ZM49.5 3C49.2239 3 49 2.77614 49 2.5C49 2.22386 49.2239 2 49.5 2C49.7761 2 50 2.22386 50 2.5C50 2.77614 49.7761 3 49.5 3ZM44.5 10C44.2239 10 44 9.77614 44 9.5C44 9.22386 44.2239 9 44.5 9C44.7761 9 45 9.22386 45 9.5C45 9.77614 44.7761 10 44.5 10ZM39.5 1C39.2239 1 39 0.776142 39 0.5C39 0.223858 39.2239 0 39.5 0C39.7761 0 40 0.223858 40 0.5C40 0.776142 39.7761 1 39.5 1ZM34.5 8C34.2239 8 34 7.77614 34 7.5C34 7.22386 34 7.5C34 7.77614 34.7761 8 34.5 8ZM29.5 2C29.2239 2 29 1.77614 29 1.5C29 1.22386 29.2239 1 29.5 1C29.7761 1 30 1.22386 30 1.5C30 1.77614 29.7761 2 29.5 2ZM24.5 9C24.2239 9 24 8.77614 24 8.5C24 8.22386 24 8.5C24 8.22386 25 8.5C25 8.77614 24.7761 9 24.5 9ZM19.5 4C19.2239 4 19 3.77614 19 3.5C19 3.22386 19.2239 3 19.5 3C19.7761 3 20 3.22386 20 3.5C20 3.77614 19.7761 4 19.5 4ZM14.5 11C14.2239 11 14 10.7761 14 10.5C14 10.2239 14.2239 10 14.5 10C14.7761 10 15 10.2239 15 10.5C15 10.7761 11 14.5 11ZM9.5 6C9.22386 6 9 5.77614 9 5.5C9 5.22386 9.22386 5 9.5 5C9.77614 5 10 5.22386 10 5.5C10 5.77614 9.77614 6 9.5 6ZM4.5 13C4.22386 13 4 12.7761 4 12.5C4 12.2239 4.22386 12 4.5 12C4.77614 12 5 12.2239 5 12.5C5 12.7761 4.77614 13 4.5 13Z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="theme-switch__circle-container">
+                        <div class="theme-switch__sun-moon-container">
+                            <div class="theme-switch__moon">
+                                <div class="theme-switch__spot"></div>
+                                <div class="theme-switch__spot"></div>
+                                <div class="theme-switch__spot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </label>
+
+            <a href="/" class="top-action-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+                Home
+            </a>
+
+            <select id="model-select" class="top-action-btn" style="cursor: pointer; outline: none;">
+                <option value="x-ai/grok-4.6">Grok 4.6 (Reasoning)</option>
+                <option value="moonshotai/kimi-k3">Kimi K3 (Advanced)</option>
+            </select>
+
+            <button class="top-action-btn" id="global-auth-btn" onclick="showAuthModal()" style="color: var(--accent-cyan); font-weight: 600;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Sign In / Sign Up
+            </button>
+        </div>
+
+        <header>
+            <div class="header-title-wrap">
+                <h1>PIPELINE <span>GENIE</span></h1>
+            </div>
+            <p class="subtitle">Intelligent CI/CD Pipeline Orchestrator</p>
+        </header>
+
+        <!-- Mode Selection Options -->
+        <div id="mode-selection" class="mode-container">
+            <div class="mode-btn" onclick="selectMode('create')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                <div class="mode-title">Create a new<br>CICD Pipeline</div>
+                <div class="mode-desc">Generate a brand new pipeline for your repository.</div>
+            </div>
+            <div class="mode-btn" onclick="selectMode('existing')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <div class="mode-title">Analyze Existing<br>Pipeline</div>
+                <div class="mode-desc">Chat with AI about your existing pipeline configuration.</div>
+            </div>
+        </div>
+
+        <!-- Search Input Box -->
+        <div class="search-card" id="search-card" style="display: none;">
+            <div class="input-group">
+                <label for="repo-url">Enter Git Repository URL</label>
+                <div class="input-with-button">
+                    <input type="text" id="repo-url" autocomplete="off" placeholder="https://github.com/pallets/flask" value="">
+                    <button id="analyze-btn" onclick="startAnalysis()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Analyze
+                    </button>
+                </div>
+                <!-- PAT input -->
+                <div style="margin-top: 1rem;">
+                    <label for="github-token" style="font-size: 0.85rem; color: var(--text-muted);">GitHub Personal Access Token (Optional for Private Repos)</label>
+                    <input type="password" id="github-token" autocomplete="new-password" placeholder="ghp_...................................." style="width: 100%; margin-top: 0.5rem; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; background-color: var(--card-bg); color: var(--text-color); font-size: 0.9rem;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Card -->
+        <div id="error-card" class="error-banner">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+            <div id="error-message">Failed to analyze repository. Make sure URL is public.</div>
+        </div>
+
+        <!-- Loader -->
+        <div id="loader" class="loader-wrap">
+            <div class="spinner-container"></div>
+            <p id="loader-msg" class="subtitle">Extracting codebase footprint...</p>
+        </div>
+
+        <!-- Results dashboard -->
+        <div id="results" class="results-card">
+            <div class="result-header">
+                <div class="result-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Analysis Result
+                </div>
+                <div class="result-actions">
+                    <button class="btn-secondary" onclick="copyJson()">Copy Raw JSON</button>
+                </div>
+            </div>
+
+            <div class="workspace">
+                <!-- Brief indicators -->
+                <div class="summary-dashboard" id="dashboard">
+                    <!-- Dynamic Tiles -->
+                </div>
+
+                <!-- Colorized JSON Panel -->
+                <div class="json-editor-block">
+                    <div class="json-header-tabs">
+                        <span>raw_output.json</span>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <button id="toggle-json-btn" class="btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="toggleJsonOutput()">Show Full Output</button>
+                            <span style="color: var(--accent-emerald);">JSON Mode Validated</span>
+                        </div>
+                    </div>
+                    <pre id="json-rendered-pre" style="max-height: 100px; overflow: hidden; transition: max-height 0.3s ease;"><code id="json-rendered"></code></pre>
+                </div>
+
+                <!-- Configure Pipeline Trigger Button -->
+                <button id="trigger-wizard-btn" class="configure-btn-trigger" onclick="showWizard()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1-1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    Configure Deployment Pipeline
+                </button>
+
+                <!-- Existing Pipelines Panel -->
+                <div id="existing-pipelines-panel" style="display:none; padding:1.5rem; background:rgba(0,240,255,0.05); border:2px solid var(--accent-blue); margin-top:2rem;">
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--accent-blue); font-family: 'Fira Code', monospace; text-transform: uppercase; margin-bottom: 1rem;">Detected Pipelines</div>
+                    <div id="existing-pipelines-list" style="margin-bottom: 1.5rem; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6;"></div>
+                    <button class="generate-pipeline-trigger" style="background: var(--accent-purple);" onclick="startChatMode()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                        Generate Pipeline via Chat
+                    </button>
+                    <!-- Inline Chat Interface -->
+                    <div id="inline-chat-interface" style="display:none; margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem;">
+                        <div id="inline-chat-history" style="max-height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
+                            <!-- generic AI intro bubble -->
+                            <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; font-size: 0.9rem; color: #fff;">
+                                <strong>PipelineGenie:</strong> I have analyzed your pipeline configuration. Let me know what changes or additions you need, and I will generate the new pipeline code.
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: flex-end; background:rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 0.5rem;">
+                            <textarea id="inline-chat-input" placeholder="e.g. Generate a production-ready EKS deployment..." rows="1" style="flex:1; background:transparent; border:none; color:#fff; padding:0.5rem; outline:none; font-family:'Fira Code', monospace; font-size: 0.9rem; resize: none; overflow-y: auto; max-height: 200px;" oninput="this.style.height = 'auto'; this.style.height = this.scrollHeight + 'px';" onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); submitInlineChat(); }"></textarea>
+                            <button onclick="submitInlineChat()" style="background: var(--accent-purple); color: #fff; border: none; border-radius: 4px; padding: 0.5rem 1rem; cursor: pointer; font-family:'Fira Code', monospace; font-weight: bold; margin-bottom: 2px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="pipeline-wizard" class="wizard-card">
+            <div class="wizard-header">
+                <div class="wizard-title">Configure CI/CD Pipeline</div>
+                <div class="subtitle" style="margin:0;">Basic Configuration</div>
+            </div>
+
+            <form id="wizard-form" onsubmit="event.preventDefault();">
+
+                <!-- 1. Pipeline Tools -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">1</span>Pipeline Tools</div>
+                    <select id="opt-cicd-platform">
+                        <option value="github_actions">GitHub Actions</option>
+                        <option value="jenkins">Jenkins</option>
+                        <option value="gitlab_ci">Gitlab CI/CD</option>
+                        <option value="circleci">Circle CI</option>
+                        <option value="bitbucket">Bitbucket pipelines</option>
+                    </select>
+                </div>
+
+                <!-- 2. Triggers -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">2</span>Triggers</div>
+                    <div class="check-grid">
+                        <div class="check-item checked" onclick="toggleCheckbox('opt-trigger-push', this)"><input type="checkbox" id="opt-trigger-push" checked><span>Push branch</span></div>
+                        <div class="check-item checked" onclick="toggleCheckbox('opt-trigger-pr', this)"><input type="checkbox" id="opt-trigger-pr" checked><span>Pull Request</span></div>
+                    </div>
+                </div>
+
+                <!-- 3. Stages / Jobs -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">3</span>Stages / Jobs</div>
+                    <div class="check-grid">
+                        <div class="check-item checked" onclick="toggleCheckbox('opt-stage-build', this)"><input type="checkbox" id="opt-stage-build" checked><span>Build</span></div>
+                        <div class="check-item checked" onclick="toggleCheckbox('opt-stage-test', this)"><input type="checkbox" id="opt-stage-test" checked><span>Test</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-stage-security', this)"><input type="checkbox" id="opt-stage-security"><span>Security scan</span></div>
+                        <div class="check-item checked" onclick="toggleCheckbox('opt-stage-deploy', this)"><input type="checkbox" id="opt-stage-deploy" checked><span>Deploy</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-stage-alert', this)"><input type="checkbox" id="opt-stage-alert"><span>Alert</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-stage-rollback', this)"><input type="checkbox" id="opt-stage-rollback"><span>Rollback</span></div>
+                    </div>
+                </div>
+
+                <!-- 4. Environment Setup -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">4</span>Environment Setup</div>
+                    <div class="basic-form-grid">
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="opt-env-runtime">Runtime / Language Version & Dependency Installation Command</label>
+                            <input type="text" id="opt-env-runtime" placeholder="e.g. Node 20.x, npm ci">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-env-os">OS / Runner Image</label>
+                            <select id="opt-env-os">
+                                <option value="Ubuntu">Ubuntu</option>
+                                <option value="Windows">Windows</option>
+                                <option value="MacOS">Macos</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 5. Cloud Provider -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">5</span>Cloud Provider</div>
+                    <select id="opt-cloud-provider">
+                        <option value="AWS">AWS</option>
+                        <option value="Azure">Azure</option>
+                        <option value="Google Cloud">Google Cloud</option>
+                        <option value="Self Hosted">Self Hosted</option>
+                        <option value="None">None</option>
+                    </select>
+                </div>
+
+                <!-- 6. Auth Component -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">6</span>Authentication Component</div>
+                    <select id="opt-auth-provider">
+                        <option value="None">None</option>
+                        <option value="aws_oidc_credentials">AWS OIDC / WIF</option>
+                        <option value="azure_workload_identity">Azure Workload Identity</option>
+                        <option value="gcp_workload_identity">GCP Workload Identity</option>
+                    </select>
+                </div>
+
+                <!-- 7. Deployment Targets -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">7</span>Deployment Targets</div>
+                    <select id="opt-deploy-target">
+                        <option value="EC2 (SSH)">EC2 (SSH)</option>
+                        <option value="EC2 (SSM)">EC2 (SSM)</option>
+                        <option value="Docker Host">Docker Host</option>
+                        <option value="Amazon ECS">Amazon ECS</option>
+                        <option value="Amazon EKS">Amazon EKS</option>
+                        <option value="Kubernetes">Kubernetes</option>
+                        <option value="Azure VM">Azure VM</option>
+                        <option value="GCP VM">GCP VM</option>
+                        <option value="AKs">AKs</option>
+                        <option value="GKE">GKE</option>
+                    </select>
+                </div>
+
+                <!-- 8. Docker Configuration -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">8</span>Docker Configuration</div>
+                    <div class="basic-form-grid">
+                        <div class="form-group">
+                            <label for="opt-docker-use">1. Containerization (Use Docker)</label>
+                            <select id="opt-docker-use" style="width: 100%;">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="Auto Detect">Auto Detect</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-dockerfile-strategy">2. Dockerfile</label>
+                            <select id="opt-dockerfile-strategy" style="width: 100%;">
+                                <option value="Use Existing Dockerfile">Use Existing Dockerfile</option>
+                                <option value="Generate Dockerfile">Generate Dockerfile</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-docker-registry">3. Container Registry</label>
+                            <select id="opt-docker-registry" style="width: 100%;">
+                                <option value="Docker Hub">Docker Hub</option>
+                                <option value="Amazon ECR">Amazon ECR</option>
+                                <option value="GitHub Container Registry">GitHub Container Registry</option>
+                                <option value="Private Registry">Private Registry</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-docker-image">4. Docker Image Name</label>
+                            <input type="text" id="opt-docker-image" placeholder="e.g. username/my-app" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-docker-tag">5. Image Tag Strategy</label>
+                            <select id="opt-docker-tag" style="width: 100%;">
+                                <option value="latest">latest</option>
+                                <option value="Git Commit SHA">Git Commit SHA</option>
+                                <option value="Build Number">Build Number</option>
+                                <option value="Semantic Version">Semantic Version</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-docker-context">6. Build Context</label>
+                            <input type="text" id="opt-docker-context" placeholder="Default: ." value="." style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-docker-deploy-method">7. Deployment Method</label>
+                            <select id="opt-docker-deploy-method" style="width: 100%;" onchange="const method = this.value; document.getElementById('docker-compose-group').style.display = (method === 'Docker Compose') ? 'flex' : 'none';">
+                                <option value="Docker Run">Docker Run</option>
+                                <option value="Docker Compose">Docker Compose</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="docker-compose-group" style="display: none; flex-direction: column;">
+                            <label for="opt-docker-compose-file">8. Compose File</label>
+                            <select id="opt-docker-compose-file" style="width: 100%;">
+                                <option value="docker-compose.yml">docker-compose.yml</option>
+                                <option value="compose.yml">compose.yml</option>
+                                <option value="Custom Path">Custom Path</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-docker-port">9. Container Port</label>
+                            <input type="text" id="opt-docker-port" placeholder="e.g. 3000" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-docker-auth">10. Registry Authentication</label>
+                            <select id="opt-docker-auth" style="width: 100%;">
+                                <option value="GitHub Secrets">GitHub Secrets</option>
+                                <option value="AWS IAM (ECR)">AWS IAM (ECR)</option>
+                                <option value="None (Public Registry)">None (Public Registry)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                                <!-- 9. Kubernetes Configuration -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">9</span>Kubernetes Configuration</div>
+                    <div class="basic-form-grid">
+                        <div class="form-group">
+                            <label for="opt-k8s-use">1. Use Kubernetes</label>
+                            <select id="opt-k8s-use" style="width: 100%;">
+                                <option value="Yes">Yes</option>
+                                <option value="No">No</option>
+                                <option value="Auto Detect">Auto Detect</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-deploy-method">2. Deployment Method</label>
+                            <select id="opt-k8s-deploy-method" style="width: 100%;">
+                                <option value="kubectl">kubectl</option>
+                                <option value="Helm">Helm</option>
+                                <option value="Kustomize">Kustomize</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-cluster-provider">3. Cluster Provider</label>
+                            <select id="opt-k8s-cluster-provider" style="width: 100%;">
+                                <option value="Amazon EKS">Amazon EKS</option>
+                                <option value="Azure AKS">Azure AKS</option>
+                                <option value="Google GKE">Google GKE</option>
+                                <option value="Self-Managed Kubernetes">Self-Managed Kubernetes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-namespace">4. Namespace</label>
+                            <input type="text" id="opt-k8s-namespace" placeholder="Default: default" value="default" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-deployment-name">5. Deployment Name</label>
+                            <input type="text" id="opt-k8s-deployment-name" placeholder="e.g. my-app" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-registry">6. Container Registry</label>
+                            <select id="opt-k8s-registry" style="width: 100%;">
+                                <option value="Docker Hub">Docker Hub</option>
+                                <option value="Amazon ECR">Amazon ECR</option>
+                                <option value="GitHub Container Registry">GitHub Container Registry</option>
+                                <option value="Private Registry">Private Registry</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-image">7. Container Image Name</label>
+                            <input type="text" id="opt-k8s-image" placeholder="e.g. hebrusrobin/pipe" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-tag">8. Image Tag Strategy</label>
+                            <select id="opt-k8s-tag" style="width: 100%;">
+                                <option value="Latest">Latest</option>
+                                <option value="Git Commit SHA">Git Commit SHA</option>
+                                <option value="Build Number">Build Number</option>
+                                <option value="Semantic Version">Semantic Version</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-manifest-config">9. Manifest Configuration</label>
+                            <select id="opt-k8s-manifest-config" style="width: 100%;" onchange="document.getElementById('k8s-manifest-path-group').style.display = (this.value === 'Use Existing YAML Files') ? 'flex' : 'none';">
+                                <option value="Use Existing YAML Files">Use Existing YAML Files</option>
+                                <option value="Generate YAML Files">Generate YAML Files</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="k8s-manifest-path-group" style="display: flex; flex-direction: column;">
+                            <label for="opt-k8s-manifest-path">10. Manifest Path</label>
+                            <select id="opt-k8s-manifest-path" style="width: 100%;">
+                                <option value="k8s/">k8s/</option>
+                                <option value="manifests/">manifests/</option>
+                                <option value="deployment.yaml">deployment.yaml</option>
+                                <option value="Custom Path">Custom Path</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-svc-type">11. Service Type</label>
+                            <select id="opt-k8s-svc-type" style="width: 100%;">
+                                <option value="ClusterIP">ClusterIP</option>
+                                <option value="NodePort">NodePort</option>
+                                <option value="LoadBalancer">LoadBalancer</option>
+                                <option value="Ingress">Ingress</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-port">12. Container Port</label>
+                            <input type="text" id="opt-k8s-port" placeholder="e.g. 8001" style="width: 100%;">
+                        </div>
+                        <div class="form-group">
+                            <label for="opt-k8s-auth">13. Cluster Authentication</label>
+                            <select id="opt-k8s-auth" style="width: 100%;">
+                                <option value="GitHub Secrets (Kubeconfig)">GitHub Secrets (Kubeconfig)</option>
+                                <option value="AWS IAM (EKS)">AWS IAM (EKS)</option>
+                                <option value="Azure Service Principal">Azure Service Principal</option>
+                                <option value="GCP Service Account">GCP Service Account</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 10. Tech Stack -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">10</span>Tech Stack</div>
+                    <p style="color:var(--text-secondary); font-size:0.85rem; margin-bottom:0.75rem;">Auto-detected from repository analyzer.</p>
+                    <select id="opt-tech-stack">
+                        <option value="expressjs">expressjs</option>
+                        <option value="fastapi">fastapi</option>
+                        <option value="reactjs">reactjs</option>
+                        <option value="flask">flask</option>
+                        <option value="django">django</option>
+                        <option value="springboot">springboot</option>
+                        <option value="nextjs">nextjs</option>
+                        <option value="vuejs">vuejs</option>
+                        <option value="Vitejs">Vitejs</option>
+                        <option value="Angular">Angular</option>
+                        <option value=".NET">.NET</option>
+                        <option value="Laravel">Laravel</option>
+                        <option value="Rails">Rails</option>
+                        <option value="Nuxt.js">Nuxt.js</option>
+                    </select>
+                </div>
+
+                <!-- 11. Test -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">11</span>Test</div>
+                    <div class="check-grid">
+                        <div class="check-item checked" onclick="toggleCheckbox('opt-test-unit', this)"><input type="checkbox" id="opt-test-unit" checked><span>Unit Tests</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-test-integration', this)"><input type="checkbox" id="opt-test-integration"><span>Integration Tests</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-test-e2e', this)"><input type="checkbox" id="opt-test-e2e"><span>End-to-End (E2E) Tests</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-test-smoke', this)"><input type="checkbox" id="opt-test-smoke"><span>Smoke Tests</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-test-regression', this)"><input type="checkbox" id="opt-test-regression"><span>Regression Tests</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-test-performance', this)"><input type="checkbox" id="opt-test-performance"><span>Performance / Load Tests</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-test-accessibility', this)"><input type="checkbox" id="opt-test-accessibility"><span>Accessibility Tests</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-test-visual', this)"><input type="checkbox" id="opt-test-visual"><span>Visual Regression Tests</span></div>
+                    </div>
+                </div>
+
+                <!-- 12. Security scan -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">12</span>Security scan</div>
+                    <div class="form-group" style="margin-bottom:0.75rem;">
+                        <label for="opt-sec-sast">SAST (Static Application Security Testing)</label>
+                        <select id="opt-sec-sast">
+                            <option value="None">None</option>
+                            <option value="SonarQube">SonarQube</option>
+                            <option value="Snyk Code">Snyk Code</option>
+                            <option value="Semgrep">Semgrep</option>
+                            <option value="CodeQL">CodeQL</option>
+                            <option value="Checkmarx">Checkmarx</option>
+                            <option value="Fortify">Fortify</option>
+                            <option value="Veracode">Veracode</option>
+                            <option value="Bandit">Bandit</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0.75rem;">
+                        <label for="opt-sec-dast">DAST (Dynamic Application Security Testing)</label>
+                        <select id="opt-sec-dast">
+                            <option value="None">None</option>
+                            <option value="OWASP ZAP">OWASP ZAP</option>
+                            <option value="Burp Suite">Burp Suite</option>
+                            <option value="Acunetix">Acunetix</option>
+                            <option value="Netsparker">Netsparker</option>
+                            <option value="AppSpider">AppSpider</option>
+                            <option value="Veracode DAST">Veracode DAST</option>
+                        </select>
+                    </div>
+                    <div class="check-grid">
+                        <div class="check-item" onclick="toggleCheckbox('opt-sec-dep', this)"><input type="checkbox" id="opt-sec-dep"><span>Dependency Scanning (SCA)</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-sec-container', this)"><input type="checkbox" id="opt-sec-container"><span>Container/Image Scanning</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-sec-secret', this)"><input type="checkbox" id="opt-sec-secret"><span>Secret Scanning</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-sec-iac', this)"><input type="checkbox" id="opt-sec-iac"><span>Infrastructure as Code (IaC) Scanning</span></div>
+                    </div>
+                </div>
+
+                <!-- 13. Environment Variables & Secrets -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">13</span>Environment Variables & Secrets</div>
+                    <div style="margin-bottom:0.75rem;">
+                        <label for="opt-secrets-store" style="font-size:0.75rem;">SECRETS MANAGER</label>
+                        <select id="opt-secrets-store" style="display:block; margin-top:0.25rem;">
+                            <option value="GitHub Actions Secrets">GitHub Actions Secrets</option>
+                            <option value="GitLab CI/CD Variables">GitLab CI/CD Variables</option>
+                            <option value="HashiCorp Vault">HashiCorp Vault</option>
+                            <option value="AWS Secrets Manager">AWS Secrets Manager</option>
+                            <option value="AWS Systems Manager (SSM) Parameter Store">AWS Systems Manager (SSM) Parameter Store</option>
+                            <option value="Azure Key Vault">Azure Key Vault</option>
+                            <option value="Google Secret Manager">Google Secret Manager</option>
+                            <option value="CircleCI Contexts">CircleCI Contexts</option>
+                            <option value="Bitbucket Variables">Bitbucket Variables</option>
+                        </select>
+                    </div>
+                    <div class="check-grid" id="env-vars-grid">
+                        <div style="color:var(--text-secondary); font-size:0.85rem; font-style:italic;">Analyze a repository first to detect environment variables.</div>
+                    </div>
+                </div>
+
+                <!-- 14. Notifications -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">14</span>Notifications</div>
+                    <div class="check-grid">
+                        <div class="check-item" onclick="toggleCheckbox('opt-notif-slack', this)"><input type="checkbox" id="opt-notif-slack"><span>Slack</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-notif-email', this)"><input type="checkbox" id="opt-notif-email"><span>Mail</span></div>
+                        <div class="check-item" onclick="toggleCheckbox('opt-notif-teams', this)"><input type="checkbox" id="opt-notif-teams"><span>Teams</span></div>
+                    </div>
+                </div>
+
+                <!-- 15. Rollback -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">15</span>Rollback</div>
+                    <select id="opt-rollback-strategy">
+                        <option value="None">None</option>
+                        <option value="Automatic">Automatic</option>
+                        <option value="Manual">Manual</option>
+                    </select>
+                </div>
+
+                <!-- 16. Health Check -->
+                <div class="basic-wizard-section">
+                    <div class="section-title-row"><span class="section-num">16</span>Health Check</div>
+                    <div class="basic-form-grid">
+                        <div class="check-item checked" onclick="toggleCheckbox('opt-health-enabled', this)" style="grid-column: span 2;">
+                            <input type="checkbox" id="opt-health-enabled" checked><span>Enable Health Check</span>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="opt-health-url">Target URL (Optional, defaults to deployment URL)</label>
+                            <input type="text" id="opt-health-url" placeholder="e.g. https://api.example.com/health">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ Finish / Generate Button ═══ -->
+                <div class="wizard-generate-row">
+                    <button type="button" class="generate-pipeline-trigger" onclick="finishWizard()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        Finish &amp; Generate Pipeline
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Wizard output result config -->
+        <div id="wizard-finished-card" class="wizard-card" style="margin-bottom: 1.5rem;">
+            <div class="wizard-header">
+                <div class="wizard-title" style="background: linear-gradient(135deg, var(--accent-emerald) 0%, var(--accent-blue) 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;">Pipeline Specification Configured Successfully</div>
+            </div>
+            <div class="raw-output-box">
+                <p class="subtitle" style="margin:0;">The config is ready for the AI pipeline generation phase. Selected features: <b><span id="wizard-feature-count">0</span></b> features populated.</p>
+                <div class="json-generated-panel">
+                    <div class="json-generated-header">
+                        <span>pipeline_generation_config.json</span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="copyWizardJson()">Copy Config</button>
+                            <button class="btn-secondary" style="padding:0.25rem 0.6rem; font-size:0.75rem;" onclick="downloadWizardJson()">Download</button>
+                        </div>
+                    </div>
+                    <pre><code id="json-wizard-rendered"></code></pre>
+                </div>
+
+                <div style="display:flex; gap:0.75rem; margin-top:1.25rem; flex-wrap:wrap;">
+                    <button onclick="restartWizard()" class="btn-secondary" style="width:fit-content;">Reconfigure Settings</button>
+                    <button id="generate-pipeline-btn" onclick="generatePipeline()" class="generate-pipeline-trigger">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        Generate Pipeline Code with AI
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Generation Loader -->
+        <div id="generation-loader" class="wizard-card" style="display:none; text-align:center; padding:3rem;">
+            <div class="loader-wrapper">
+                <div class="loader"></div>
+                <span class="loader-letter">G</span>
+                <span class="loader-letter">E</span>
+                <span class="loader-letter">N</span>
+                <span class="loader-letter">E</span>
+                <span class="loader-letter">R</span>
+                <span class="loader-letter">A</span>
+                <span class="loader-letter">T</span>
+                <span class="loader-letter">I</span>
+                <span class="loader-letter">N</span>
+                <span class="loader-letter">G</span>
+            </div>
+            <p id="gen-loader-msg" class="subtitle" style="margin:2rem 0 0; font-size:1.1rem; font-weight: bold; color: var(--accent-color, #8b5cf6);">Agentic Pipeline Engine Online...</p>
+            <div id="ai-dynamic-flow-container" style="margin-top:20px; text-align:center; position:relative; min-height:60px;">
+                <p id="ai-flow-status" style="font-family: monospace; font-size: 0.85rem; color: #38bdf8; letter-spacing: 1px; transition: opacity 0.4s;">Initializing Neural Architecture...</p>
+                <div style="width:250px; height:4px; background:rgba(255,255,255,0.1); margin:10px auto; border-radius:2px; overflow:hidden;">
+                    <div id="ai-flow-bar" style="width:5%; height:100%; background:linear-gradient(90deg, #38bdf8, #8b5cf6); border-radius:2px; transition: width 0.5s ease-out;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEFT PANEL: Analysis -->
+        <div class="left-panel">
+            <div id="repo-summary-header" class="glass-panel" style="display:none; margin-bottom:1.5rem; text-align:center;">
+                <!-- Repo summary injected here -->
+            </div>
+        </div>
+
+        <!-- Generated Pipeline Result Card -->
+        <div id="generated-pipeline-card" class="wizard-card" style="display:none; margin-bottom:3rem;">
+            <div class="wizard-header">
+                <div class="wizard-title" style="background: linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #8b5cf6 100%); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; font-size:1.5rem;">
+                    AI-Generated Pipeline
+                </div>
+            </div>
+
+            <!-- Dynamic Files Container -->
+            <div id="gen-files-container"></div>
+            
+            <!-- Setup Instructions Container -->
+            <div id="implementation-plan-container" style="display:none; margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border-color); background: rgba(13, 17, 23, 0.4); border-radius: 12px; margin-bottom: 2rem;">
+                <h3 style="margin-top: 0; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; font-size: 1.1rem; gap: 0.5rem; display: flex; align-items: center;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> Setup Instructions</h3>
+                <div id="implementation-plan-content" style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;"></div>
+            </div>
+            
+            <!-- Chatbox for Error Fixing -->
+            <div id="error-chatbox-container" style="display:none; margin-top: 2rem; padding: 1.5rem; border-top: 1px solid var(--border-color); background: rgba(13, 17, 23, 0.4); border-radius: 0 0 16px 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-primary); margin: 0;">Pipeline Assistant</p>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 0;">Paste any error below to have AI resolve it.</p>
+                </div>
+                
+                <div id="chat-history" style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.25rem; max-height: 400px; overflow-y: auto;">
+                    <!-- Chat bubbles will go here -->
+                </div>
+
+                <div style="display: flex; align-items: center; background: rgba(22, 27, 34, 0.8); border-radius: 9999px; padding: 0.5rem 0.5rem 0.5rem 1.25rem; border: 1px solid var(--border-color); transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);" id="chatbox-wrapper">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <input type="text" id="pipeline-error-input" placeholder="Ask anything, paste errors..." style="flex: 1; background: transparent; border: none; outline: none; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; padding: 0 1rem;" onkeypress="if(event.key === 'Enter') submitPipelineError()" onfocus="document.getElementById('chatbox-wrapper').style.borderColor='var(--accent-blue)'" onblur="document.getElementById('chatbox-wrapper').style.borderColor='var(--border-color)'">
+                    <button onclick="submitPipelineError()" style="background: rgba(255, 255, 255, 0.05); color: var(--text-primary); border: 1px solid var(--border-color); width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; padding: 0;" onmouseover="this.style.background='var(--accent-blue)'; this.style.color='#000'; this.style.borderColor='var(--accent-blue)';" onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.color='var(--text-primary)'; this.style.borderColor='var(--border-color)';">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Genie.SSS<br>A DevOps Product by Sensetronix Software Services</p>
+    </footer>
+
+    <script>
+        let currentRawJson = null;
+
+        // Colorize JSON string for pretty printing
+        function syntaxHighlight(json) {
+            if (typeof json !== 'string') {
+                json = JSON.stringify(json, undefined, 2);
+            }
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key';
+                    } else {
+                        cls = 'json-string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'json-null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+        
+        function toggleJsonOutput() {
+            const pre = document.getElementById('json-rendered-pre');
+            const btn = document.getElementById('toggle-json-btn');
+            if (pre.style.maxHeight === '100px') {
+                pre.style.maxHeight = '2000px'; 
+                pre.style.overflowY = 'auto';
+                btn.innerText = 'Hide Output';
+            } else {
+                pre.style.maxHeight = '100px';
+                pre.style.overflowY = 'hidden';
+                btn.innerText = 'Show Full Output';
+                pre.scrollTop = 0;
+            }
+        }
+
+        function toggleWizardVisibility(checked) {
+            const form = document.getElementById('wizard-form');
+            if (checked) {
+                // Instantly finish wizard using auto-detected defaults
+                finishWizard();
+            }
+        }
+
+        let pipelineMode = 'create'; // 'create' or 'existing'
+        function selectMode(mode) {
+            pipelineMode = mode;
+            document.getElementById('mode-selection').style.display = 'none';
+            document.getElementById('search-card').style.display = 'block';
+            
+            // Adjust title text depending on mode
+            const sub = document.querySelector('.subtitle');
+            if (mode === 'create') {
+                sub.innerText = "Git Repository Pipeline Generator";
+            } else {
+                sub.innerText = "Git Repository Pipeline Analyzer";
+            }
+        }
+
+        let inlineChatHistory = [];
+
+        async function startAnalysis() {
+            const token = localStorage.getItem("genie_auth_token");
+            if (!token) {
+                showAuthModal();
+                return;
+            }
+
+            const urlInput = document.getElementById('repo-url').value.trim();
+            let tokenInput = document.getElementById('github-token') ? document.getElementById('github-token').value.trim() : null;
+            if (tokenInput === "") tokenInput = null;
+            
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const loader = document.getElementById('loader');
+            const results = document.getElementById('results');
+            const errorCard = document.getElementById('error-card');
+
+            if (!urlInput) return;
+
+            // Reset states
+            errorCard.style.display = 'none';
+            results.style.display = 'none';
+            loader.style.display = 'flex';
+            analyzeBtn.disabled = true;
+
+            const loaderMessages = [
+                "Cloning repository branch...",
+                "Indexing directory contents...",
+                "Detecting package managers and tools...",
+                "Analyzing Dockerfiles and build steps...",
+                "Calculating final evaluation score..."
+            ];
+            
+            let messageIdx = 0;
+            const messageInterval = setInterval(() => {
+                if (messageIdx < loaderMessages.length) {
+                    document.getElementById('loader-msg').innerText = loaderMessages[messageIdx++];
+                }
+            }, 1200);
+
+            try {
+                // Post request to backend /analyze endpoint
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ repo_url: urlInput, github_token: tokenInput })
+                });
+
+                clearInterval(messageInterval);
+                loader.style.display = 'none';
+                analyzeBtn.disabled = false;
+
+                if (!response.ok) {
+                    const errorDetail = await response.json();
+                    throw new Error(errorDetail.detail || `Server responded with status ${response.status}`);
+                }
+
+                const data = await response.json();
+                currentRawJson = data;
+                renderDashboard(data);
+                
+                const preCode = document.getElementById('json-rendered');
+                preCode.innerHTML = syntaxHighlight(data);
+                results.style.display = 'block';
+                
+                // Show buttons based on mode
+                document.getElementById('trigger-wizard-btn').style.display = 'none';
+                document.getElementById('existing-pipelines-panel').style.display = 'none';
+                document.getElementById('inline-chat-interface').style.display = 'none';
+                
+                if (pipelineMode === 'create') {
+                    document.getElementById('trigger-wizard-btn').style.display = 'flex';
+                    prepopulateWizard(data);
+                } else if (pipelineMode === 'existing') {
+                    const parsed = data.ci_cd?.parsed_workflows || [];
+                    const listEl = document.getElementById('existing-pipelines-list');
+                    if (parsed.length > 0) {
+                        listEl.innerHTML = parsed.map(w => `<div><strong>${w.name || w.file_path}</strong> - Triggers: ${w.triggers.join(', ')}</div>`).join('');
+                    } else {
+                        listEl.innerHTML = `<em>No existing pipelines detected in this repository.</em>`;
+                    }
+                    document.getElementById('existing-pipelines-panel').style.display = 'block';
+                }
+
+            } catch (err) {
+                clearInterval(messageInterval);
+                loader.style.display = 'none';
+                analyzeBtn.disabled = false;
+                
+                document.getElementById('error-message').innerText = err.message;
+                errorCard.style.display = 'flex';
+            }
+        }
+
+        function startChatMode() {
+            document.getElementById('inline-chat-interface').style.display = 'block';
+            inlineChatHistory = [];
+            const parsed = currentRawJson?.ci_cd?.parsed_workflows || [];
+            if (parsed.length > 0) {
+                 const systemContext = "Context provided by the platform: Here is the existing pipeline structure detected in this repository:\n" + JSON.stringify(parsed, null, 2) + "\n\nThe user will ask you what type of pipeline they want or how they want to alter this pipeline. Based on their input and the existing pipeline, you must GENERATE THE COMPLETE NEW CI/CD PIPELINE CODE.\nCRITICAL RULE: You must use standard Markdown code blocks for the code output (e.g. ```yaml\\n<your code>\\n```). Do NOT put everything on a single line, you MUST use real newline characters to format the code properly.";
+                 inlineChatHistory.push({ role: 'user', content: systemContext });
+                 inlineChatHistory.push({ role: 'assistant', content: "Acknowledged. I am ready to generate the new pipeline code based on your requirements." });
+            }
+        }
+
+        async function submitInlineChat() {
+            const token = localStorage.getItem("genie_auth_token");
+            if (!token) {
+                if (typeof showAuthModal === 'function') showAuthModal();
+                return;
+            }
+            
+            const inputEl = document.getElementById('inline-chat-input');
+            const message = inputEl.value.trim();
+            if (!message) return;
+            
+            inputEl.value = '';
+            inputEl.style.height = 'auto'; // Reset text area height
+            
+            const histEl = document.getElementById('inline-chat-history');
+            
+            histEl.innerHTML += `<div style="background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.2); padding: 1rem; border-radius: 8px; font-size: 0.9rem; color: #fff; text-align: right;"><strong>You:</strong> <br>${message.replace(/\\n|\n/g, '<br>')}</div>`;
+            
+            inlineChatHistory.push({ role: 'user', content: message });
+            
+            const loadingId = 'loading-' + Date.now();
+            histEl.innerHTML += `<div id="${loadingId}" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; font-size: 0.9rem; color: #fff;">
+                <div style="font-weight: bold; margin-bottom: 0.5rem; color: var(--accent-blue);">PipelineGenie Agent</div>
+                <div style="display:flex; align-items:center; gap: 12px; margin-top: 10px;">
+                    <div class="spinner" style="width:20px; height:20px; border-width: 2px;"></div>
+                    <span id="${loadingId}-text" style="color:var(--text-secondary); font-family: 'Fira Code', monospace; letter-spacing:0.5px;">Synthesizing pipeline intelligence...</span>
+                </div>
+            </div>`;
+            histEl.scrollTop = histEl.scrollHeight;
+
+            const phrases = ["Initializing configuration constraints...", "Compiling deployment YAML layout...", "Running syntax validations...", "Finalizing agentic output..."];
+            let pIdx = 0;
+            const loaderInt = setInterval(() => {
+                const el = document.getElementById(loadingId+'-text');
+                if(el && pIdx < phrases.length) el.innerText = phrases[pIdx++];
+                else clearInterval(loaderInt);
+            }, 1500);
+
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        messages: inlineChatHistory,
+                        model: document.getElementById('model-select').value
+                    })
+                });
+
+                clearInterval(loaderInt);
+                document.getElementById(loadingId).remove();
+
+                if (!response.ok) {
+                    throw new Error('Chat API failed');
+                }
+
+                const data = await response.json();
+                
+                // Process simple markdown rules like linebreaks
+                let blocks = [];
+                // Support matching 3 or 2 backticks loosely, ignoring language id and allowing newlines
+                let formattedMsg = data.message.replace(/``+([a-zA-Z]*)[ \t]*\n([\s\S]*?)``+/g, function(match, lang, code) {
+                    blocks.push(code);
+                    return `___CODE_BLOCK_${blocks.length - 1}___`;
+                });
+
+                formattedMsg = formattedMsg.replace(/`([^`]+)`/g, '<code style="color:var(--accent-blue);">$1</code>');
+                formattedMsg = formattedMsg.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+                formattedMsg = formattedMsg.replace(/\n/g, '<br>');
+
+                blocks.forEach((code, i) => {
+                    let escapedCode = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    let copyHtml = `<div style="position:relative; background:rgba(0,0,0,0.5); padding:1rem; border-radius:8px; margin:1rem 0;">
+                        <button onclick="navigator.clipboard.writeText(this.nextElementSibling.innerText); this.innerText='Copied!'; setTimeout(()=>this.innerText='Copy Code', 2000);" style="position:absolute; top:8px; right:8px; background:var(--accent-blue); color:#000; border:none; padding:4px 8px; border-radius:4px; font-size:0.75rem; cursor:pointer; font-family:'Fira Code', monospace; font-weight:bold; z-index: 10;">Copy Code</button>
+                        <pre style="margin:0; font-family:'Fira Code', monospace; line-height:1.4; overflow-x:auto; padding-top: 1.5rem;"><code style="color:#a5d6ff;">${escapedCode}</code></pre>
+                    </div>`;
+                    formattedMsg = formattedMsg.replace(`___CODE_BLOCK_${i}___`, copyHtml);
+                });
+
+                histEl.innerHTML += `<div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 1rem; border-radius: 8px; font-size: 0.9rem; color: #fff;"><strong>PipelineGenie:</strong><br><br>${formattedMsg}</div>`;
+                histEl.scrollTop = histEl.scrollHeight;
+                
+                inlineChatHistory.push({ role: 'assistant', content: data.message, reasoning_details: data.reasoning_details });
+            } catch (err) {
+                document.getElementById(loadingId).remove();
+                histEl.innerHTML += `<div style="background: rgba(255,0,0,0.1); border: 1px solid rgba(255,0,0,0.3); padding: 1rem; border-radius: 8px; font-size: 0.9rem; color: #ff4444;"><strong>Error:</strong> Failed to fetch response. Check authentication and API status.</div>`;
+            }
+        }
+
+        function renderDashboard(data) {
+            const dashboard = document.getElementById('dashboard');
+            dashboard.innerHTML = '';
+
+            const lang = data.grade_info?.language || data.backend?.language || data.frontend?.language || 'Unknown';
+            const frameworkName = data.grade_info?.framework || data.backend?.framework?.name || data.frontend?.framework?.name || 'Vanilla/None';
+            const grade = data.grade_info?.grade || 'N/A';
+            const score = data.grade_info?.score ?? 'N/A';
+            
+            const has_docker = data.grade_info?.docker_present || data.infrastructure?.docker?.has_docker;
+            const docker = has_docker ? 'Identified' : 'None';
+
+            let gradeClass = 'badge';
+            if (grade === 'beginner') gradeClass += ' orange';
+            else if (grade === 'intermediate') gradeClass += ' blue';
+            else gradeClass += ' emerald';
+
+            // Add tile values
+            createTile('Technology Stack', lang, 'blue');
+            createTile('Framework & Config', frameworkName, 'emerald');
+            createTile('Evaluation Grade', `${grade} (${score} pts)`, gradeClass);
+            createTile('Docker container', docker, has_docker ? 'emerald' : 'orange');
+            
+            document.getElementById('repo-summary-header').style.display = 'block';
+        }
+
+        function createTile(label, value, badgeStyle = '') {
+            const dashboard = document.getElementById('dashboard');
+            
+            const tile = document.createElement('div');
+            tile.className = 'summary-tile';
+            
+            tile.innerHTML = `
+                <div class="tile-label">${label}</div>
+                <div class="tile-value">
+                    <span class="badge ${badgeStyle}">${value}</span>
+                </div>
+            `;
+            dashboard.appendChild(tile);
+        }
+
+        function showToast(message = 'Copied') {
+            let toast = document.getElementById('genie-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'genie-toast';
+                toast.className = 'toast-notification';
+                toast.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span id="genie-toast-msg">${message}</span>
+                `;
+                document.body.appendChild(toast);
+            } else {
+                document.getElementById('genie-toast-msg').innerText = message;
+            }
+            
+            toast.classList.add('show');
+            if (window._toastTimeout) clearTimeout(window._toastTimeout);
+            window._toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function copyJson() {
+            if (!currentRawJson) return;
+            const text = JSON.stringify(currentRawJson, null, 2);
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied');
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+
+
+        // ================= WIZARD CONTROLLER LOGIC =================
+        let finalWizardPayload = {};
+
+        // Deployment mode options map based on deployment target
+        const deployModeMap = {
+            'EC2 (SSH)': ['Git Pull', 'Fresh Clone'],
+            'EC2 (SSM)': ['Git Pull', 'Fresh Clone'],
+            'Docker Host': ['Docker Image', 'Docker Replace'],
+            'Amazon ECS': ['Docker Image', 'Task Definition'],
+            'Amazon EKS': ['kubectl apply', 'Helm'],
+            'Kubernetes': ['kubectl apply', 'Helm'],
+            'Azure VM': ['Git Pull', 'Fresh Clone'],
+            'GCP VM': ['Git Pull', 'Fresh Clone'],
+            'Vercel': ['Auto Deploy'],
+            'Railway': ['Auto Deploy'],
+            'Render': ['Auto Deploy'],
+            'Netlify': ['Auto Deploy']
+        };
+
+        const vmTargets = ['EC2 (SSH)', 'EC2 (SSM)', 'Azure VM', 'GCP VM'];
+        const ec2Targets = ['EC2 (SSH)', 'EC2 (SSM)'];
+        const k8sTargets = ['Kubernetes', 'Amazon EKS'];
+
+        function onDeployTargetChange() {
+            const target = document.getElementById('opt-deploy-target').value;
+
+            // Update deployment mode options
+            const modeSelect = document.getElementById('opt-deploy-mode');
+            modeSelect.innerHTML = '';
+            const modes = deployModeMap[target] || ['Git Pull', 'Fresh Clone'];
+            modes.forEach(m => {
+                const o = document.createElement('option');
+                o.value = m; o.textContent = m;
+                modeSelect.appendChild(o);
+            });
+
+            // Conditional visibility for advanced sections
+            const isVM = vmTargets.includes(target);
+            const isEC2 = ec2Targets.includes(target);
+            const isK8s = k8sTargets.includes(target);
+            const isEC2Native = isEC2; // Docker section hidden for EC2 native
+
+            toggle('adv-docker-section', !isEC2Native);
+            toggle('adv-k8s-section', isK8s);
+            toggle('adv-pm-section', isVM);
+            toggle('adv-deploy-cmd-section', isEC2);
+        }
+
+        function showWizard() {
+            document.getElementById('pipeline-wizard').style.display = 'block';
+            document.getElementById('wizard-finished-card').style.display = 'none';
+            document.getElementById('pipeline-wizard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function toggleCheckbox(elementId, tileElement) {
+            const cb = document.getElementById(elementId);
+            if (!cb || cb.disabled) return;
+            cb.checked = !cb.checked;
+            tileElement.classList.toggle('checked', cb.checked);
+        }
+
+        function prepopulateWizard(data) {
+            // 1. Pipeline Tools
+            if (data.ci_cd?.existing_ci && data.ci_cd.existing_ci !== 'none') {
+                setSelectValue('opt-cicd-platform', data.ci_cd.existing_ci);
+            }
+
+            // 4. Environment Setup
+            if (data.backend?.language) {
+                document.getElementById('opt-env-runtime').value = String(data.backend.language);
+            }
+            if (data.scripts?.install) {
+                document.getElementById('opt-env-runtime').value += ', ' + data.scripts.install;
+            } else if (data.package_manager) {
+                const pm = String(data.package_manager).toLowerCase();
+                if (pm === 'npm') document.getElementById('opt-env-runtime').value += ', npm ci';
+                if (pm === 'yarn') document.getElementById('opt-env-runtime').value += ', yarn install';
+                if (pm === 'pnpm') document.getElementById('opt-env-runtime').value += ', pnpm install';
+            }
+
+            // 7. Tech Stack
+            if (data.backend?.language || data.frontend?.language || data.backend?.framework || data.frontend?.framework) {
+                 const stackHints = [data.backend?.framework, data.frontend?.framework, data.backend?.language, data.frontend?.language];
+                 for(const hint of stackHints) {
+                     if(hint && String(hint).toLowerCase() !== 'none') {
+                         setSelectValue('opt-tech-stack', hint);
+                         break;
+                     }
+                 }
+            }
+
+            // 10. Environment Variables / Secrets
+            const envGrid = document.getElementById('env-vars-grid');
+            const envVars = data.secrets?.env_keys || data.environment_variables || [];
+            if (envVars && envVars.length > 0) {
+                envGrid.innerHTML = '';
+                envVars.forEach((varName, i) => {
+                    const id = `opt-env-var-${i}`;
+                    const div = document.createElement('div');
+                    div.className = 'check-item checked';
+                    div.setAttribute('onclick', `toggleCheckbox('${id}', this)`);
+                    div.innerHTML = `<input type="checkbox" id="${id}" checked data-env-name="${varName}"><span>${varName}</span>`;
+                    envGrid.appendChild(div);
+                });
+            }
+        }
+
+        function setCheck(id, checked) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.checked = checked;
+            el.parentElement.classList.toggle('checked', checked);
+        }
+
+        function setSelectValue(id, value) {
+            const selectEl = document.getElementById(id);
+            if (!selectEl || !value) return;
+            const strVal = String(value).toLowerCase();
+            for (let i = 0; i < selectEl.options.length; i++) {
+                if (selectEl.options[i].value.toLowerCase() === strVal ||
+                    selectEl.options[i].textContent.toLowerCase().includes(strVal)) {
+                    selectEl.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        function val(id) { const e = document.getElementById(id); return (e && !e.disabled) ? e.value : undefined; }
+        function chk(id) { const e = document.getElementById(id); return (e && !e.disabled) ? e.checked : undefined; }
+
+        function finishWizard() {
+            const spec = {};
+            let featuresCount = 0;
+
+            // 1. Pipeline Tools
+            spec.pipeline_tool = val('opt-cicd-platform'); featuresCount++;
+            
+            // 2. Triggers
+            spec.triggers = {
+                push: chk('opt-trigger-push'),
+                pull_request: chk('opt-trigger-pr')
+            };
+            if(spec.triggers.push || spec.triggers.pull_request) featuresCount++;
+            
+            // 3. Stages / Jobs
+            spec.stages = {
+                build: chk('opt-stage-build'),
+                test: chk('opt-stage-test'),
+                security_scan: chk('opt-stage-security'),
+                deploy: chk('opt-stage-deploy'),
+                alert: chk('opt-stage-alert'),
+                rollback: chk('opt-stage-rollback')
+            };
+            if(Object.values(spec.stages).some(Boolean)) featuresCount++;
+            
+            // 4. Environment Setup
+            spec.environment_setup = {
+                runtime_and_install: val('opt-env-runtime'),
+                os_runner: val('opt-env-os')
+            };
+            if(spec.environment_setup.runtime_and_install) featuresCount++;
+            
+            // 5. Cloud Provider
+            spec.cloud_provider = val('opt-cloud-provider'); featuresCount++;
+
+            // Auth Component
+            spec.authentication = val('opt-auth-provider');
+            if(spec.authentication !== 'None') featuresCount++;
+
+            // 6. Deployment Targets
+            spec.deployment_target = val('opt-deploy-target'); featuresCount++;
+
+            // 7. Docker Configuration
+            const dockerMethod = val('opt-docker-deploy-method');
+            spec.docker_configurations = {
+                use_docker: val('opt-docker-use'),
+                dockerfile: document.getElementById('opt-dockerfile-strategy').value === 'Generate Dockerfile',
+                registry: val('opt-docker-registry'),
+                image_name: val('opt-docker-image'),
+                tag_strategy: val('opt-docker-tag'),
+                build_context: val('opt-docker-context'),
+                deployment_method: dockerMethod,
+                container_port: val('opt-docker-port'),
+                registry_auth: val('opt-docker-auth')
+            };
+            if (dockerMethod === 'Docker Compose') {
+                spec.docker_configurations.compose_file = val('opt-docker-compose-file');
+            }
+            featuresCount += 1;
+
+                        // 8. Kubernetes Configuration
+            const k8sManifest = val('opt-k8s-manifest-config');
+            spec.kubernetes_configuration = {
+                use_kubernetes: val('opt-k8s-use'),
+                deployment_method: val('opt-k8s-deploy-method'),
+                cluster_provider: val('opt-k8s-cluster-provider'),
+                namespace: val('opt-k8s-namespace'),
+                deployment_name: val('opt-k8s-deployment-name'),
+                registry: val('opt-k8s-registry'),
+                image_name: val('opt-k8s-image'),
+                tag_strategy: val('opt-k8s-tag'),
+                manifest_configuration: k8sManifest,
+                service_type: val('opt-k8s-svc-type'),
+                container_port: val('opt-k8s-port'),
+                cluster_auth: val('opt-k8s-auth')
+            };
+            if (k8sManifest === 'Use Existing YAML Files') {
+                spec.kubernetes_configuration.manifest_path = val('opt-k8s-manifest-path');
+            }
+            featuresCount += 1;
+
+            // 9. Tech Stack
+            spec.tech_stack = val('opt-tech-stack'); featuresCount++;
+
+            // 10. Test
+            spec.tests = {
+                unit: chk('opt-test-unit'),
+                integration: chk('opt-test-integration'),
+                e2e: chk('opt-test-e2e'),
+                smoke: chk('opt-test-smoke'),
+                regression: chk('opt-test-regression'),
+                performance: chk('opt-test-performance'),
+                accessibility: chk('opt-test-accessibility'),
+                visual: chk('opt-test-visual')
+            };
+            if(Object.values(spec.tests).some(Boolean)) featuresCount++;
+
+            // 11. Security scan
+            spec.security_scans = {
+                sast: val('opt-sec-sast'),
+                dast: val('opt-sec-dast'),
+                dependency: chk('opt-sec-dep'),
+                container: chk('opt-sec-container'),
+                secret: chk('opt-sec-secret'),
+                iac: chk('opt-sec-iac')
+            };
+            if(spec.security_scans.sast!=='None' || spec.security_scans.dast!=='None' || spec.security_scans.dependency || spec.security_scans.container || spec.security_scans.secret || spec.security_scans.iac) featuresCount++;
+
+            // 12. Secrets
+            const envChecks = document.querySelectorAll('#env-vars-grid input[type="checkbox"]:checked');
+            spec.secrets = {
+                manager: val('opt-secrets-store'),
+                keys: Array.from(envChecks).map(cb => cb.dataset.envName).filter(Boolean)
+            };
+            if(spec.secrets.keys.length > 0) featuresCount++;
+            
+            // 13. Notifications
+            spec.notifications = {
+                slack: chk('opt-notif-slack'),
+                email: chk('opt-notif-email'),
+                teams: chk('opt-notif-teams')
+            };
+            if(Object.values(spec.notifications).some(Boolean)) featuresCount++;
+
+            // 14. Rollback
+            spec.rollback = val('opt-rollback-strategy'); featuresCount++;
+
+            // 15. Health Check
+            spec.health_checks = {
+                enabled: chk('opt-health-enabled'),
+                url: val('opt-health-url')
+            };
+            if(spec.health_checks.enabled) featuresCount++;
+
+            // Output data
+            finalWizardPayload = spec;
+            document.getElementById('pipeline-wizard').style.display = 'none';
+            
+            const renderTarget = document.getElementById('json-wizard-rendered');
+            renderTarget.innerHTML = syntaxHighlight(spec);
+            
+            document.getElementById('wizard-feature-count').textContent = featuresCount;
+            document.getElementById('wizard-finished-card').style.display = 'block';
+            document.getElementById('wizard-finished-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+
+
+
+        function restartWizard() {
+            showWizard();
+        }
+
+        function copyWizardJson() {
+            if (!finalWizardPayload) return;
+            const text = JSON.stringify(finalWizardPayload, null, 2);
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Copied');
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+
+        function downloadWizardJson() {
+            if (!finalWizardPayload) return;
+            const text = JSON.stringify(finalWizardPayload, null, 2);
+            const blob = new Blob([text], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'pipeline_spec.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // ── AI Pipeline Generation ─────────────────────────
+        let generatedPipelineData = null;
+
+        function simpleMarkdownToHtml(md) {
+            if (!md) return '';
+            let html = md
+                .replace(/### (.+)/g, '<h3>$1</h3>')
+                .replace(/## (.+)/g, '<h3>$1</h3>')
+                .replace(/# (.+)/g, '<h3>$1</h3>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/`(.+?)`/g, '<code style="background:rgba(56,189,248,0.1);padding:0.1em 0.35em;border-radius:4px;font-size:0.85em;color:var(--accent-blue);">$1</code>')
+                .replace(/\n- /g, '\n<li>')
+                .replace(/\n\d+\. /g, '\n<li>');
+            // Wrap consecutive <li> in <ul>
+            html = html.replace(/((<li>.*\n?)+)/g, '<ul>$1</ul>');
+            html = html.replace(/\n/g, '<br>');
+            return html;
+        }
+
+        function renderGeneratedFile(fileObj, index) {
+            const container = document.getElementById('gen-files-container');
+            
+            const fileCardHTML = `
+                <div class="gen-file-box" style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <div class="gen-file-badge" style="margin-bottom:0;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                            <span>${fileObj.filename || 'file'}</span>
+                        </div>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.75rem;" onclick="copyGeneratedFileCode(${index})">Copy Code</button>
+                            <button class="btn-secondary" style="padding:0.3rem 0.75rem; font-size:0.75rem;" onclick="downloadGeneratedFileCode(${index})">Download</button>
+                        </div>
+                    </div>
+                    
+                    <div class="gen-code-block">
+                        <pre><code id="gen-code-content-${index}"></code></pre>
+                    </div>
+
+                    <div class="gen-explanation-block">
+                        <div class="gen-explanation-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+                            AI Chain of Thought
+                        </div>
+                        <div class="gen-explanation-text">${simpleMarkdownToHtml(fileObj.explanation || 'No explanation provided.')}</div>
+                    </div>
+                </div>
+            `;
+            
+            // Append HTML
+            container.insertAdjacentHTML('beforeend', fileCardHTML);
+            
+            // Set text content safely (prevents XSS/HTML escaping issues in the codeblock)
+            document.getElementById(`gen-code-content-${index}`).textContent = fileObj.content || '';
+        }
+
+        async function generatePipeline() {
+            if (!currentRawJson || !finalWizardPayload) {
+                alert('Please complete the analysis and wizard configuration first.');
+                return;
+            }
+
+            const btn = document.getElementById('generate-pipeline-btn');
+            const loader = document.getElementById('generation-loader');
+            const resultCard = document.getElementById('generated-pipeline-card');
+            const filesContainer = document.getElementById('gen-files-container');
+
+            // Show loader, clear previous result
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.textContent = 'Generating...';
+            loader.style.display = 'block';
+            resultCard.style.display = 'none';
+            filesContainer.innerHTML = '';
+            loader.scrollIntoView({ behavior: 'smooth' });
+
+            const msgEl = document.getElementById('gen-loader-msg');
+            msgEl.innerText = "Agentic Generation Engine Online";
+            const flowStatus = document.getElementById('ai-flow-status');
+            const flowBar = document.getElementById('ai-flow-bar');
+            
+            const flowStates = [
+                "Extracting Codebase Context...",
+                "Synthesizing Directory Topology...",
+                "Mapping Dependency Matrices...",
+                "Formulating CI/CD Strategy...",
+                "Writing YAML Directives...",
+                "Testing Static Integrations...",
+                "Applying Best Practices...",
+                "Validating AI Self-Review...",
+                "Finalizing Container Deployment..."
+            ];
+            
+            flowStatus.innerText = flowStates[0];
+            flowBar.style.width = '10%';
+            
+            let loadTimer = 0;
+            const uiInterval = setInterval(() => {
+                loadTimer++;
+                let flowIndex = Math.floor(loadTimer / 2);
+                if (flowIndex < flowStates.length) {
+                    flowStatus.innerText = flowStates[flowIndex];
+                    let pct = Math.min(10 + (flowIndex * 10), 95); 
+                    flowBar.style.width = pct + '%';
+                } else {
+                    flowStatus.innerText = "Processing Output Stream...";
+                    flowBar.style.width = '98%';
+                }
+            }, 1000);
+
+            try {
+                const token = localStorage.getItem("genie_auth_token");
+                const response = await fetch('/generate-pipeline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({
+                        analysis: currentRawJson,
+                        spec: finalWizardPayload,
+                        model: document.getElementById('model-select').value
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Generation failed');
+                }
+
+                const data = await response.json();
+                
+                generatedPipelineData = [];
+
+                if (data.status === 'VALID' || data.status === 'INVALID') {
+                    generatedPipelineData.push({
+                        filename: data.filename || 'pipeline.yml',
+                        content: data.content,
+                        explanation: data.explanation || ''
+                    });
+
+                    if (data.manifests && Array.isArray(data.manifests)) {
+                        data.manifests.forEach(m => {
+                            if (m.path && m.content) {
+                                generatedPipelineData.push({
+                                    filename: m.path,
+                                    content: m.content,
+                                    explanation: m.explanation || ''
+                                });
+                            }
+                        });
+                    }
+                }
+
+                // Render all files
+                filesContainer.innerHTML = '';
+                generatedPipelineData.forEach((fileObj, index) => {
+                    renderGeneratedFile(fileObj, index);
+                });
+
+                if (data.implementation_plan) {
+                    document.getElementById('implementation-plan-content').innerHTML = simpleMarkdownToHtml(data.implementation_plan);
+                    document.getElementById('implementation-plan-container').style.display = 'block';
+                }
+
+                // Show result card
+                loader.style.display = 'none';
+                resultCard.style.display = 'block';
+                document.getElementById('error-chatbox-container').style.display = 'block';
+                resultCard.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                clearInterval(uiInterval);
+                loader.style.display = 'none';
+                alert('Pipeline generation failed: ' + error.message);
+            } finally {
+                clearInterval(uiInterval);
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Generate Pipeline Code with AI';
+            }
+        }
+
+        function copyGeneratedFileCode(index) {
+            if (!generatedPipelineData || !generatedPipelineData[index]) return;
+            navigator.clipboard.writeText(generatedPipelineData[index].content).then(() => {
+                showToast('Copied');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+            });
+        }
+
+        function downloadGeneratedFileCode(index) {
+            if (!generatedPipelineData || !generatedPipelineData[index]) return;
+            const fileObj = generatedPipelineData[index];
+            const filename = fileObj.filename || 'generated.yml';
+            const blob = new Blob([fileObj.content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function submitPipelineError() {
+            const inputEl = document.getElementById('pipeline-error-input');
+            const errorMsg = inputEl.value.trim();
+            if (!errorMsg || !generatedPipelineData || generatedPipelineData.length === 0) return;
+            
+            inputEl.value = '';
+            inputEl.disabled = true;
+            
+            const chatHistory = document.getElementById('chat-history');
+            
+            // Append User Bubble
+            const userBubble = document.createElement('div');
+            userBubble.style = "align-self: flex-end; background: var(--accent-blue); color: #000; padding: 0.75rem 1.25rem; border-radius: 16px 16px 0 16px; font-size: 0.9rem; max-width: 80%; overflow-wrap: break-word;";
+            userBubble.textContent = errorMsg;
+            chatHistory.appendChild(userBubble);
+            
+            // Append Loader Bubble
+            const loaderBubble = document.createElement('div');
+            loaderBubble.style = "align-self: flex-start; background: rgba(22, 27, 34, 0.8); color: var(--text-primary); border: 1px solid var(--border-color); padding: 0.75rem 1.25rem; border-radius: 16px 16px 16px 0; display: flex; align-items: center; gap: 0.75rem;";
+            loaderBubble.innerHTML = `<div class="spinner" style="width: 16px; height: 16px; border-width: 1.5px;"></div><span style="font-size: 0.85rem; color: var(--text-secondary);">Analyzing...</span>`;
+            chatHistory.appendChild(loaderBubble);
+            
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            
+            const currentCode = generatedPipelineData[0].content;
+
+            try {
+                const response = await fetch('/fix-pipeline', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        error_message: errorMsg,
+                        current_pipeline: currentCode,
+                        spec: finalWizardPayload,
+                        analysis: currentRawJson
+                    })
+                });
+
+                chatHistory.removeChild(loaderBubble);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fix pipeline via AI.');
+                }
+
+                const data = await response.json();
+                
+                // Append AI Bubble
+                const aiBubble = document.createElement('div');
+                aiBubble.style = "align-self: flex-start; background: rgba(22, 27, 34, 0.8); color: var(--text-primary); border: 1px solid var(--border-color); padding: 1rem 1.25rem; border-radius: 16px 16px 16px 0; font-size: 0.9rem; max-width: 90%; overflow-x: auto;";
+                aiBubble.innerHTML = simpleMarkdownToHtml(data.message || data.explanation || "Done.");
+                chatHistory.appendChild(aiBubble);
+                
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            } catch (err) {
+                if (chatHistory.contains(loaderBubble)) chatHistory.removeChild(loaderBubble);
+                const errBubble = document.createElement('div');
+                errBubble.style = "align-self: flex-start; background: rgba(248, 113, 113, 0.1); color: var(--accent-red); border: 1px solid rgba(248, 113, 113, 0.3); padding: 0.75rem 1.25rem; border-radius: 16px 16px 16px 0; font-size: 0.85rem;";
+                errBubble.textContent = "Error: " + err.message;
+                chatHistory.appendChild(errBubble);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            } finally {
+                inputEl.disabled = false;
+                inputEl.focus();
+            }
+        }
+        
+    </script>
+    
+
+
+
+    <!-- Strands WebGL2 Background -->
+    <div id="strands-bg" style="position:fixed;top:0;left:280px;right:0;height:100vh;z-index:-1;overflow:hidden;display:flex;align-items:center;justify-content:center;">
+        <canvas id="strands-canvas" style="display:block;width:100%;height:100%;"></canvas>
+    </div>
+    
+    <script>
+    // Strands WebGL2 Background - Vanilla JS (converted from React/OGL)
+    (function() {
+      const canvas = document.getElementById('strands-canvas');
+      if (!canvas) return;
+
+      const gl = canvas.getContext('webgl2', { alpha: true, premultipliedAlpha: true, antialias: true });
+      if (!gl) { console.warn('[Strands] WebGL2 not available'); return; }
+
+      gl.clearColor(0, 0, 0, 0);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+      const MAX_STRANDS = 12;
+      const MAX_COLORS = 8;
+
+      // ── Shaders ──
+      const VERT = `#version 300 es
+in vec2 position;
+void main() {
+  gl_Position = vec4(position, 0.0, 1.0);
+}`;
+
+      const FRAG = `#version 300 es
+precision highp float;
+
+uniform float uTime;
+uniform vec2 uResolution;
+uniform vec3 uColors[${MAX_COLORS}];
+uniform int uColorCount;
+uniform int uStrandCount;
+uniform float uSpeed;
+uniform float uAmplitude;
+uniform float uWaviness;
+uniform float uThickness;
+uniform float uGlow;
+uniform float uTaper;
+uniform float uSpread;
+uniform float uHueShift;
+uniform float uIntensity;
+uniform float uOpacity;
+uniform float uScale;
+uniform float uSaturation;
+
+out vec4 fragColor;
+
+const float PI = 3.14159265;
+
+vec3 spectrum(float t) {
+  return 0.5 + 0.5 * cos(2.0 * PI * (t + vec3(0.00, 0.33, 0.67)));
+}
+
+vec3 samplePalette(float t) {
+  t = fract(t);
+  float scaled = t * float(uColorCount);
+  int idx = int(floor(scaled));
+  float blend = fract(scaled);
+  int nextIdx = idx + 1;
+  if (nextIdx >= uColorCount) nextIdx = 0;
+  return mix(uColors[idx], uColors[nextIdx], blend);
+}
+
+vec3 strandColor(float t) {
+  if (uColorCount > 0) return samplePalette(t);
+  return spectrum(t);
+}
+
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution) / uResolution.y;
+  uv /= max(uScale, 0.0001);
+
+  float e = 0.06 + uIntensity * 0.94;
+  float env = pow(max(cos(uv.x * PI * 1.3), 0.0), uTaper);
+
+  vec3 col = vec3(0.0);
+
+  for (int i = 0; i < ${MAX_STRANDS}; i++) {
+    if (i >= uStrandCount) break;
+
+    float fi = float(i);
+    float ph = fi * 1.7 * uSpread;
+    float freq = (2.0 + fi * 0.35) * uWaviness;
+    float spd = 1.4 + fi * 1.2;
+
+    float tt = uTime * uSpeed;
+    float w = sin(uv.x * freq + tt * spd + ph) * 0.60
+            + sin(uv.x * freq * 1.1 - tt * spd * 0.7 + ph * 1.7) * 0.40;
+
+    float amp = (0.1 + 0.02 * e) * env * uAmplitude;
+    float y = w * amp;
+
+    float d = abs(uv.y - y);
+    float thick = (0.001 + 0.05 * e) * (0.35 + env) * uThickness;
+    float g = thick / (d + thick * 0.45);
+    g = g * g;
+
+    float h = fi / float(uStrandCount) + uv.x * 0.30 + uTime * 0.04 + uHueShift;
+    col += strandColor(h) * g * env;
+  }
+
+  col *= 0.45 + 0.7 * e;
+  col = 1.0 - exp(-col * uGlow);
+
+  float gray = dot(col, vec3(0.2126, 0.7152, 0.0722));
+  col = max(mix(vec3(gray), col, uSaturation), 0.0);
+
+  float lum = max(max(col.r, col.g), col.b);
+  float alpha = clamp(lum, 0.0, 1.0) * uOpacity;
+
+  fragColor = vec4(col * uOpacity, alpha);
+}`;
+
+      // ── Compile ──
+      function compile(type, src) {
+        const s = gl.createShader(type);
+        gl.shaderSource(s, src);
+        gl.compileShader(s);
+        if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+          console.error('[Strands] Shader error:', gl.getShaderInfoLog(s));
+          gl.deleteShader(s);
+          return null;
+        }
+        return s;
+      }
+
+      const vs = compile(gl.VERTEX_SHADER, VERT);
+      const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+      if (!vs || !fs) return;
+
+      const prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        console.error('[Strands] Link error:', gl.getProgramInfoLog(prog));
+        return;
+      }
+      gl.useProgram(prog);
+
+      // ── Full-screen triangle ──
+      const posAttr = gl.getAttribLocation(prog, 'position');
+      const vao = gl.createVertexArray();
+      gl.bindVertexArray(vao);
+      const vbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(posAttr);
+      gl.vertexAttribPointer(posAttr, 2, gl.FLOAT, false, 0, 0);
+
+      // ── Uniforms ──
+      const uLoc = name => gl.getUniformLocation(prog, name);
+      const uTime = uLoc('uTime');
+      const uRes = uLoc('uResolution');
+      const uColorCount = uLoc('uColorCount');
+      const uStrandCount = uLoc('uStrandCount');
+      const uSpeed = uLoc('uSpeed');
+      const uAmplitude = uLoc('uAmplitude');
+      const uWaviness = uLoc('uWaviness');
+      const uThickness = uLoc('uThickness');
+      const uGlow = uLoc('uGlow');
+      const uTaper = uLoc('uTaper');
+      const uSpread = uLoc('uSpread');
+      const uHueShift = uLoc('uHueShift');
+      const uIntensity = uLoc('uIntensity');
+      const uOpacity = uLoc('uOpacity');
+      const uScale = uLoc('uScale');
+      const uSaturation = uLoc('uSaturation');
+
+      // ── Config (matches user's desired settings) ──
+      const colors = ['#00f0ff', '#7C3AED', '#06B6D4', '#39ff14'];
+      const colorData = [];
+      for (let i = 0; i < MAX_COLORS; i++) {
+        const hex = colors[i] || colors[colors.length - 1];
+        const r = parseInt(hex.slice(1,3), 16) / 255;
+        const g = parseInt(hex.slice(3,5), 16) / 255;
+        const b = parseInt(hex.slice(5,7), 16) / 255;
+        colorData.push(r, g, b);
+      }
+
+      // Set static uniforms
+      gl.uniform1i(uColorCount, Math.min(colors.length, MAX_COLORS));
+      gl.uniform1i(uStrandCount, Math.min(4, MAX_STRANDS));
+      gl.uniform1f(uSpeed, 0.4);
+      gl.uniform1f(uAmplitude, 1.0);
+      gl.uniform1f(uWaviness, 1.0);
+      gl.uniform1f(uThickness, 0.7);
+      gl.uniform1f(uGlow, 2.6);
+      gl.uniform1f(uTaper, 1.2);
+      gl.uniform1f(uSpread, 1.0);
+      gl.uniform1f(uHueShift, 0.0);
+      gl.uniform1f(uIntensity, 0.6);
+      gl.uniform1f(uOpacity, 1.0);
+      gl.uniform1f(uScale, 2.0);
+      gl.uniform1f(uSaturation, 2.0);
+
+      // Set color palette uniform array
+      for (let i = 0; i < MAX_COLORS; i++) {
+        const loc = uLoc('uColors[' + i + ']');
+        if (loc) gl.uniform3f(loc, colorData[i*3], colorData[i*3+1], colorData[i*3+2]);
+      }
+
+      // ── Resize ──
+      function resize() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        const w = canvas.clientWidth * dpr;
+        const h = canvas.clientHeight * dpr;
+        if (canvas.width !== w || canvas.height !== h) {
+          canvas.width = w;
+          canvas.height = h;
+        }
+        gl.viewport(0, 0, w, h);
+        gl.uniform2f(uRes, w, h);
+      }
+      window.addEventListener('resize', resize);
+      resize();
+
+      // ── Render loop ──
+      let animId = 0;
+      function tick(t) {
+        animId = requestAnimationFrame(tick);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.uniform1f(uTime, t * 0.001);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+      animId = requestAnimationFrame(tick);
+
+      console.log('[Strands] Background initialized successfully');
+    })();
+    </script>
+
+    <script>
+        document.body.insertAdjacentHTML('beforeend', `
+<style>
+/* From Uiverse.io by shadyeljokers */ 
+.auth-neon-container {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0, 238, 255, 0.25), inset 0 0 30px rgba(0, 0, 0, 0.9);
+  background: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-neon-container span {
+  position: absolute;
+  left: 0;
+  width: 32px;
+  height: 6px;
+  background: #2c4766;
+  border-radius: 80px;
+  transform-origin: 220px;
+  transform: rotate(calc(var(--i) * (360deg / 50)));
+  animation: neonBlink 3s linear infinite;
+  animation-delay: calc(var(--i) * (3s / 50));
+}
+
+@keyframes neonBlink {
+  0% {
+    background: #0ef;
+    box-shadow: 0 0 10px #0ef;
+  }
+  25% {
+    background: #2c4766;
+    box-shadow: none;
+  }
+}
+
+.neon-login-box {
+  position: absolute;
+  width: 85%;
+  max-width: 320px;
+  z-index: 10;
+  padding: 10px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.neon-login-box h2 {
+  font-size: 1.6em;
+  color: #0ef;
+  text-align: center;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 238, 255, 0.5);
+}
+
+.neon-input-box {
+  position: relative;
+  margin: 14px 0;
+  text-align: left;
+}
+
+.neon-input-box input {
+  width: 100%;
+  height: 44px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px solid #2c4766;
+  outline: none;
+  border-radius: 40px;
+  font-size: 0.95em;
+  color: #fff;
+  padding: 0 18px;
+  transition: 0.3s ease;
+  box-sizing: border-box;
+}
+
+.neon-input-box input:focus {
+  border-color: #0ef;
+  box-shadow: 0 0 12px rgba(0, 238, 255, 0.3);
+}
+
+.neon-input-box input:not(:placeholder-shown) ~ label,
+.neon-input-box input:focus ~ label {
+  top: -9px;
+  font-size: 0.75em;
+  background: #111827;
+  padding: 0 8px;
+  color: #0ef;
+  border-radius: 4px;
+}
+
+.neon-input-box label {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  font-size: 0.85em;
+  pointer-events: none;
+  transition: 0.3s ease;
+  color: #94a3b8;
+}
+
+.neon-btn {
+  width: 100%;
+  height: 42px;
+  background: #0ef;
+  border: none;
+  outline: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-size: 0.95em;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+  box-shadow: 0 0 15px rgba(0, 238, 255, 0.4);
+}
+
+.neon-btn:hover {
+  background: #38bdf8;
+  box-shadow: 0 0 25px rgba(0, 238, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.neon-signup-link {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.82em;
+  color: #94a3b8;
+}
+
+.neon-signup-link a {
+  color: #0ef;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.neon-signup-link a:hover {
+  text-decoration: underline;
+}
+
+.neon-cancel-link {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.neon-cancel-link a {
+  font-size: 0.75em;
+  color: #64748b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.neon-cancel-link a:hover {
+  color: #94a3b8;
+}
+</style>
+        <div id="auth-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div class="auth-neon-container" id="auth-neon-spans-box-index">
+            <div class="neon-login-box">
+              <h2 id="auth-form-title">LOGIN</h2>
+              <div id="auth-main-form">
+                <div class="neon-input-box">
+                  <input type="email" id="auth-email" placeholder=" " required autocomplete="off">
+                  <label>Email</label>
+                </div>
+                
+                <div class="neon-input-box" id="auth-password-group">
+                  <input type="password" id="auth-pass" placeholder=" " required autocomplete="off">
+                  <label>Password</label>
+                </div>
+
+                <div class="neon-input-box" id="auth-otp-group" style="display: none;">
+                  <input type="text" id="auth-otp" placeholder=" " maxlength="6" style="letter-spacing: 6px; font-weight:800; text-align:center;">
+                  <label>6-Digit OTP</label>
+                </div>
+                
+                <p id="auth-err" style="color:#ef4444; font-size:0.75rem; min-height:18px; text-align:center; margin:2px 0;"></p>
+                
+                <button class="neon-btn" id="auth-submit-btn" onclick="submitAuth('login')">
+                  Authorize
+                </button>
+
+                <div class="neon-signup-link" id="auth-signup-text">
+                  New developer? <a onclick="submitAuth('signup')">Sign Up</a>
+                </div>
+                
+                <div class="neon-cancel-link">
+                  <a onclick="closeAuthModal()">Cancel</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div style="background: rgba(13, 14, 24, 0.95); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; width: 90%; max-width: 420px; padding: 2.2rem; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2), inset 0 1px 1px rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem; position: relative;">
+            
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.05) 70%); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </div>
+
+            <div>
+              <h3 style="font-size: 1.35rem; font-weight: 700; color: #fff; margin: 0 0 0.4rem; letter-spacing: -0.5px;">Terminate Session</h3>
+              <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin: 0;">Are you sure you want to disconnect and log out of your account?</p>
+            </div>
+
+            <div id="logout-user-badge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; color: #cbd5e1; font-family: monospace;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
+              <span id="logout-user-email">Active User</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; width: 100%; margin-top: 0.5rem;">
+              <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                Stay Signed In
+              </button>
+              <button onclick="confirmLogout()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #ffffff; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35); transition: all 0.2s;">
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>`);
+
+        (function initNeonSpansIndex() {
+            const container = document.getElementById('auth-neon-spans-box-index');
+            if (container && !container.querySelector('span')) {
+                for (let i = 0; i < 50; i++) {
+                    const span = document.createElement('span');
+                    span.style.setProperty('--i', i);
+                    container.appendChild(span);
+                }
+            }
+        })();
+
+        function showAuthModal() {
+            if (localStorage.getItem("genie_auth_token")) {
+                showLogoutModal();
+                return;
+            }
+            closeAuthModal();
+            document.getElementById('auth-overlay').style.display = 'flex';
+        }
+
+        function showLogoutModal() {
+            const email = localStorage.getItem("genie_user_email") || "Active User";
+            const emailEl = document.getElementById('logout-user-email');
+            if (emailEl) emailEl.innerText = email;
+            const modal = document.getElementById('logout-overlay');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-overlay');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function confirmLogout() {
+            localStorage.removeItem("genie_auth_token");
+            localStorage.removeItem("genie_user_email");
+            closeLogoutModal();
+            const btn = document.getElementById('global-auth-btn');
+            if (btn) btn.innerText = "Sign In / Sign Up";
+        }
+
+        function closeAuthModal() {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('auth-password-group').style.display = 'block';
+            document.getElementById('auth-otp-group').style.display = 'none';
+            document.getElementById('auth-signup-text').style.display = 'block';
+            document.getElementById('auth-err').innerText = '';
+            document.getElementById('auth-pass').value = '';
+            document.getElementById('auth-otp').value = '';
+            document.getElementById('auth-form-title').innerText = 'LOGIN';
+
+            const btn = document.getElementById('auth-submit-btn');
+            btn.innerText = 'Authorize';
+            btn.onclick = () => submitAuth('login');
+        }
+
+        let pendingAuthEmail = "";
+
+        async function submitAuth(mode = 'login') {
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
+            const pass = document.getElementById('auth-pass').value;
+            const err = document.getElementById('auth-err');
+            if(!email || !pass) { err.innerText = "Credentials required."; return; }
+
+            err.innerText = "Authenticating...";
+            
+            try {
+                let res = await fetch(`/api/auth/${mode}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email, password: pass})
+                });
+
+                if (res.status === 404 && mode === 'login') {
+                    res = await fetch(`/api/auth/signup`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email: email, password: pass})
+                    });
+                }
+
+                const data = await res.json();
+                
+                if (res.ok && data.access_token) {
+                    localStorage.setItem("genie_auth_token", data.access_token);
+                    localStorage.setItem("genie_user_email", email);
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    const btn = document.getElementById('global-auth-btn');
+                    if (btn) btn.innerText = email.split('@')[0];
+                } else if (res.ok) {
+                    pendingAuthEmail = email;
+                    document.getElementById('auth-password-group').style.display = 'none';
+                    document.getElementById('auth-signup-text').style.display = 'none';
+                    document.getElementById('auth-otp-group').style.display = 'block';
+                    document.getElementById('auth-form-title').innerText = 'VERIFY OTP';
+                    err.style.color = "#0ef";
+                    err.innerText = data.detail || "Enter OTP sent to email";
+
+                    const btn = document.getElementById('auth-submit-btn');
+                    btn.innerText = 'Validate Code';
+                    btn.onclick = () => verifyOtp();
+                } else {
+                    err.style.color = "#ef4444";
+                    err.innerText = data.message || data.detail || "Authentication Failed.";
+                }
+            } catch (e) {
+                err.style.color = "#ef4444";
+                err.innerText = "Network execution aborted.";
+            }
+        }
+
+        async function verifyOtp() {
+            const email = pendingAuthEmail || document.getElementById('auth-email').value.trim().toLowerCase();
+            const code = document.getElementById('auth-otp').value.trim();
+            const err = document.getElementById('auth-err');
+            if(!code) { err.innerText = "OTP Required."; return; }
+
+            err.style.color = "#0ef";
+            err.innerText = "Verifying Code...";
+            
+            try {
+                const res = await fetch('/api/auth/verify-otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email, code: code})
+                });
+                const data = await res.json();
+                
+                if (res.ok && data.access_token) {
+                    localStorage.setItem("genie_auth_token", data.access_token);
+                    localStorage.setItem("genie_user_email", email);
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    const btn = document.getElementById('global-auth-btn');
+                    if (btn) btn.innerText = email.split('@')[0];
+                } else {
+                    err.style.color = "#ef4444";
+                    err.innerText = data.detail || "Verification Failed.";
+                }
+            } catch (e) {
+                err.style.color = "#ef4444";
+                err.innerText = "Network execution aborted.";
+            }
+        }
+
+        // Theme Switch Logic
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('genie_theme', theme);
+            const checkbox = document.getElementById('theme-switch-checkbox');
+            if (checkbox) {
+                checkbox.checked = (theme === 'dark');
+            }
+        }
+
+        function onThemeToggleChange(checkbox) {
+            const nextTheme = checkbox.checked ? 'dark' : 'light';
+            setTheme(nextTheme);
+        }
+
+        window.onload = () => {
+            const savedTheme = localStorage.getItem('genie_theme') || 'dark';
+            setTheme(savedTheme);
+
+            const token = localStorage.getItem("genie_auth_token");
+            if (token) {
+                const btn = document.getElementById('global-auth-btn');
+                if (btn) {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        if (payload && payload.sub) {
+                            btn.innerText = payload.sub.split('@')[0];
+                        }
+                    } catch (e) {}
+                }
+            }
+        };
+    </script>
+</body>
+</html>

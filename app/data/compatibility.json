@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "_relationship_enum": ["compatible", "preferred", "incompatible", "requires_adapter"],
+  "_severity_enum": ["hard", "soft", "info"],
+  "compatibility_rules": [
+    {
+      "id": "compat.001",
+      "a": "framework.nextjs",
+      "b": "target.lambda",
+      "relationship": "requires_adapter",
+      "severity": "soft",
+      "reason": "SSR Next.js needs an adapter (e.g. serverless-next.js/OpenNext) to run on raw Lambda; plain zip deploy will not serve pages correctly."
+    },
+    {
+      "id": "compat.002",
+      "a": "framework.nextjs",
+      "b": "target.vercel",
+      "relationship": "preferred",
+      "severity": "info",
+      "reason": "Native first-party platform for Next.js; zero-config SSR, edge functions, and image optimization."
+    },
+    {
+      "id": "compat.003",
+      "a": "framework.django",
+      "b": "target.lambda",
+      "relationship": "incompatible",
+      "severity": "hard",
+      "reason": "Django's WSGI request lifecycle and cold-start weight make it a poor fit for Lambda; use EC2, ECS, or Elastic Beanstalk instead."
+    },
+    {
+      "id": "compat.004",
+      "a": "framework.express",
+      "b": "deploy.ssh",
+      "relationship": "compatible",
+      "severity": "info",
+      "reason": "Standard fit; pair with PM2 or systemd for process supervision."
+    },
+    {
+      "id": "compat.005",
+      "a": "framework.go",
+      "b": "target.cloud_run",
+      "relationship": "preferred",
+      "severity": "info",
+      "reason": "Static binary + minimal container image gives very fast cold starts on Cloud Run."
+    },
+    {
+      "id": "compat.006",
+      "a": "framework.aspnet",
+      "b": "target.azure_app_service",
+      "relationship": "preferred",
+      "severity": "info",
+      "reason": "First-party Microsoft platform integration; simplest deploy path for ASP.NET."
+    },
+    {
+      "id": "compat.007",
+      "a": "test.selenium",
+      "b": "tool.github_actions",
+      "relationship": "requires_adapter",
+      "severity": "soft",
+      "reason": "Needs a browser + driver installed in the runner, or a Selenium Grid service container defined in the workflow."
+    },
+    {
+      "id": "compat.008",
+      "a": "tool.bitbucket_pipelines",
+      "b": "deploy.kubernetes",
+      "relationship": "compatible",
+      "severity": "info",
+      "reason": "Works via kubectl in a pipe/step, but has no first-party Kubernetes deployment pipe like some other tools — expect more manual YAML."
+    },
+    {
+      "id": "compat.009",
+      "a": "framework.spring_boot",
+      "b": "target.lambda",
+      "relationship": "requires_adapter",
+      "severity": "soft",
+      "reason": "Needs aws-serverless-java-container or Spring Cloud Function; JVM cold start is also a real cost concern on Lambda."
+    },
+    {
+      "id": "compat.010",
+      "a": "framework.laravel",
+      "b": "target.lambda",
+      "relationship": "incompatible",
+      "severity": "hard",
+      "reason": "No practical adapter path in this knowledge base; recommend EC2, Docker on ECS, or a PaaS like Render instead."
+    }
+  ]
+}

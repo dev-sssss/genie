@@ -1,0 +1,12 @@
+[
+  {
+    "topic": "Docker Multi-Stage & Node.js Hardening Best Practices",
+    "issue": "COPY ordering clobbers clean dependencies if host node_modules exists, nginx add_header inheritance drops security headers in static location blocks, and lack of supply-chain flags/PID1 handling",
+    "rule": "1. In Node.js multi-stage runtime, ALWAYS copy repository source files FIRST, then COPY --from=deps node_modules and package.json SECOND so clean installed deps are never clobbered.\n2. In deps stage, use `RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --ignore-scripts --no-audit --no-fund` for maximum speed, reproducibility, and supply-chain protection (drop --ignore-scripts only if native C++ bindings like bcrypt/sharp are detected).\n3. In runtime stage, install `tini` or `dumb-init` as PID 1, drop root to `USER node`, set `STOPSIGNAL SIGTERM`, and execute `CMD [\"node\", \"--disable-proto=throw\", \"server.js\"]`.\n4. Healthcheck should use an inline Node HTTP 200 assertion or native probe.\n5. In nginx frontend blocks, `add_header` is NOT inherited if a location block defines its own headers. Security headers (X-Content-Type-Options, X-Frame-Options, Referrer-Policy) must be explicitly included in both server and asset location blocks."
+  },
+  {
+    "topic": "Tabular Output and Comparison Formatting",
+    "issue": "Markdown tables rendered as raw text without clean delimiter structure",
+    "rule": "All comparison metrics, head-to-head assessments, and verdict summaries MUST be strictly formatted as standard GitHub-Flavored Markdown tables with clear header rows (| Criterion | Option A | Option B | Winner |) and delimiter rows (|---|---|---|---|) placed on isolated individual lines."
+  }
+]

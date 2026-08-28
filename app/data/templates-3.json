@@ -1,0 +1,292 @@
+{
+  "components": [
+    {
+      "component_type": "testing",
+      "identifier": "playwright_e2e_runner",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - uses: actions/setup-node@v4\n        with:\n          node-version: ${{ env.NODE_VERSION }}\n          cache: 'npm'\n      - name: Install dependencies\n        run: npm ci\n      - name: Install Playwright browsers\n        run: npx playwright install --with-deps chromium\n      - name: Run Playwright E2E tests\n        run: npx playwright test --reporter=html,junit\n        env:\n          BASE_URL: ${{ vars.E2E_BASE_URL || 'http://localhost:3000' }}\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: playwright-report\n          path: |\n            playwright-report/\n            test-results/\n          retention-days: 14",
+        "gitlab_ci": "  image: mcr.microsoft.com/playwright:v1.48.0-jammy\n  variables:\n    BASE_URL: ${E2E_BASE_URL:-http://localhost:3000}\n  script:\n    - npm ci\n    - npx playwright test --reporter=html,junit\n  artifacts:\n    when: always\n    paths:\n      - playwright-report/\n      - test-results/\n    expire_in: 14 days",
+        "azure_devops": "          - script: |\n              npm ci\n              npx playwright install --with-deps chromium\n            displayName: Install Playwright\n          - script: |\n              npx playwright test --reporter=html,junit\n            displayName: Run Playwright E2E tests\n            env:\n              BASE_URL: $(E2E_BASE_URL)\n          - task: PublishBuildArtifacts@1\n            condition: always()\n            inputs:\n              PathtoPublish: 'playwright-report/'\n              ArtifactName: 'playwright-report'",
+        "jenkins": "                    sh '''\n                        npm ci\n                        npx playwright install --with-deps chromium\n                        BASE_URL=${E2E_BASE_URL:-http://localhost:3000} npx playwright test --reporter=html,junit\n                    '''\n                    archiveArtifacts artifacts: 'playwright-report/**, test-results/**', allowEmptyArchive: true",
+        "circleci": "            npm ci\n            npx playwright install --with-deps chromium\n            BASE_URL=${E2E_BASE_URL:-http://localhost:3000} npx playwright test --reporter=html,junit",
+        "bitbucket": "            - npx playwright install-deps\n            - npm ci\n            - npx playwright install chromium\n            - BASE_URL=${E2E_BASE_URL:-http://localhost:3000} npx playwright test --reporter=html,junit\n            artifacts:\n              - playwright-report/**\n              - test-results/**"
+      },
+      "required_variables": ["NODE_VERSION", "E2E_BASE_URL"]
+    },
+    {
+      "component_type": "testing",
+      "identifier": "cypress_e2e_runner",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Run Cypress E2E tests\n        uses: cypress-io/github-action@v6\n        with:\n          browser: chrome\n          config: baseUrl=${{ vars.E2E_BASE_URL || 'http://localhost:3000' }}\n      - uses: actions/upload-artifact@v4\n        if: failure()\n        with:\n          name: cypress-screenshots\n          path: cypress/screenshots\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: cypress-videos\n          path: cypress/videos",
+        "gitlab_ci": "  image: cypress/browsers:node20.0.0-chrome123\n  script:\n    - npm ci\n    - npx cypress run --browser chrome --config baseUrl=${E2E_BASE_URL:-http://localhost:3000}\n  artifacts:\n    when: always\n    paths:\n      - cypress/screenshots/\n      - cypress/videos/",
+        "azure_devops": "          - script: |\n              npm ci\n              npx cypress run --browser chrome --config baseUrl=$(E2E_BASE_URL)\n            displayName: Run Cypress E2E tests\n          - task: PublishBuildArtifacts@1\n            condition: always()\n            inputs:\n              PathtoPublish: 'cypress/videos/'\n              ArtifactName: 'cypress-videos'",
+        "jenkins": "                    sh '''\n                        npm ci\n                        npx cypress run --browser chrome --config baseUrl=${E2E_BASE_URL:-http://localhost:3000}\n                    '''\n                    archiveArtifacts artifacts: 'cypress/screenshots/**, cypress/videos/**', allowEmptyArchive: true",
+        "circleci": "            npm ci\n            npx cypress run --browser chrome --config baseUrl=${E2E_BASE_URL:-http://localhost:3000}",
+        "bitbucket": "            - npm ci\n            - npx cypress run --browser chrome --config baseUrl=${E2E_BASE_URL:-http://localhost:3000}\n            artifacts:\n              - cypress/screenshots/**\n              - cypress/videos/**"
+      },
+      "required_variables": ["E2E_BASE_URL"]
+    },
+    {
+      "component_type": "security_scan",
+      "identifier": "snyk_dependency_scan",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Run Snyk dependency scan\n        uses: snyk/actions/node@master\n        continue-on-error: ${{ vars.SNYK_FAIL_ON_ISSUES == 'false' }}\n        env:\n          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}\n        with:\n          args: --severity-threshold=${{ vars.SNYK_SEVERITY_THRESHOLD || 'high' }}\n      - name: Upload Snyk report\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: snyk-report\n          path: snyk.sarif\n          if-no-files-found: ignore",
+        "gitlab_ci": "  image: node:20-bullseye\n  before_script:\n    - npm install -g snyk\n  script:\n    - snyk auth $SNYK_TOKEN\n    - snyk test --severity-threshold=${SNYK_SEVERITY_THRESHOLD:-high} --sarif-file-output=snyk.sarif || ${SNYK_FAIL_ON_ISSUES:-true}\n  artifacts:\n    when: always\n    paths:\n      - snyk.sarif",
+        "azure_devops": "          - task: SnykSecurityScan@1\n            inputs:\n              serviceConnectionEndpoint: 'Snyk Service Connection'\n              testType: 'app'\n              severityThreshold: '$(SNYK_SEVERITY_THRESHOLD)'\n              failOnIssues: '$(SNYK_FAIL_ON_ISSUES)'\n            displayName: Snyk Dependency Scan",
+        "jenkins": "                    sh '''\n                        npm install -g snyk\n                        snyk auth ${SNYK_TOKEN}\n                        snyk test --severity-threshold=${SNYK_SEVERITY_THRESHOLD:-high} --sarif-file-output=snyk.sarif || ${SNYK_FAIL_ON_ISSUES:-true}\n                    '''\n                    archiveArtifacts artifacts: 'snyk.sarif', allowEmptyArchive: true",
+        "circleci": "            npm install -g snyk\n            snyk auth $SNYK_TOKEN\n            snyk test --severity-threshold=${SNYK_SEVERITY_THRESHOLD:-high} --sarif-file-output=snyk.sarif || ${SNYK_FAIL_ON_ISSUES:-true}",
+        "bitbucket": "            - npm install -g snyk\n            - snyk auth $SNYK_TOKEN\n            - snyk test --severity-threshold=${SNYK_SEVERITY_THRESHOLD:-high} --sarif-file-output=snyk.sarif || ${SNYK_FAIL_ON_ISSUES:-true}\n            artifacts:\n              - snyk.sarif"
+      },
+      "required_variables": ["SNYK_TOKEN", "SNYK_SEVERITY_THRESHOLD"]
+    },
+    {
+      "component_type": "security_scan",
+      "identifier": "npm_audit_scan",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Run npm audit\n        run: |\n          npm audit --audit-level=${{ vars.AUDIT_LEVEL || 'high' }} --json > npm-audit-report.json || true\n          VULN_COUNT=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo 0)\n          echo \"High/Critical vulnerabilities found: $VULN_COUNT\"\n          if [ \"$VULN_COUNT\" -gt 0 ] && [ \"${{ vars.AUDIT_FAIL_ON_HIGH || 'true' }}\" = \"true\" ]; then\n            echo \"::error::Found $VULN_COUNT high/critical vulnerabilities\"\n            exit 1\n          fi\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: npm-audit-report\n          path: npm-audit-report.json",
+        "gitlab_ci": "  image: node:20-bullseye\n  script:\n    - npm audit --audit-level=${AUDIT_LEVEL:-high} --json > npm-audit-report.json || true\n    - |\n      VULN_COUNT=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo 0)\n      echo \"High/Critical vulnerabilities found: $VULN_COUNT\"\n      if [ \"$VULN_COUNT\" -gt 0 ] && [ \"${AUDIT_FAIL_ON_HIGH:-true}\" = \"true\" ]; then\n        echo \"Found $VULN_COUNT high/critical vulnerabilities\"\n        exit 1\n      fi\n  artifacts:\n    when: always\n    paths:\n      - npm-audit-report.json",
+        "azure_devops": "          - script: |\n              npm audit --audit-level=$(AUDIT_LEVEL) --json > npm-audit-report.json || true\n              VULN_COUNT=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo 0)\n              echo \"High/Critical vulnerabilities found: $VULN_COUNT\"\n              if [ \"$VULN_COUNT\" -gt 0 ] && [ \"$(AUDIT_FAIL_ON_HIGH)\" = \"true\" ]; then\n                exit 1\n              fi\n            displayName: npm audit\n          - task: PublishBuildArtifacts@1\n            condition: always()\n            inputs:\n              PathtoPublish: 'npm-audit-report.json'\n              ArtifactName: 'npm-audit-report'",
+        "jenkins": "                    sh '''\n                        npm audit --audit-level=${AUDIT_LEVEL:-high} --json > npm-audit-report.json || true\n                        VULN_COUNT=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo 0)\n                        echo \"High/Critical vulnerabilities found: $VULN_COUNT\"\n                        if [ \"$VULN_COUNT\" -gt 0 ] && [ \"${AUDIT_FAIL_ON_HIGH:-true}\" = \"true\" ]; then\n                            exit 1\n                        fi\n                    '''\n                    archiveArtifacts artifacts: 'npm-audit-report.json', allowEmptyArchive: true",
+        "circleci": "            npm audit --audit-level=${AUDIT_LEVEL:-high} --json > npm-audit-report.json || true\n            VULN_COUNT=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo 0)\n            echo \"High/Critical vulnerabilities found: $VULN_COUNT\"\n            if [ \"$VULN_COUNT\" -gt 0 ] && [ \"${AUDIT_FAIL_ON_HIGH:-true}\" = \"true\" ]; then\n              exit 1\n            fi",
+        "bitbucket": "            - npm audit --audit-level=${AUDIT_LEVEL:-high} --json > npm-audit-report.json || true\n            - |\n              VULN_COUNT=$(jq '.metadata.vulnerabilities.high + .metadata.vulnerabilities.critical' npm-audit-report.json 2>/dev/null || echo 0)\n              echo \"High/Critical vulnerabilities found: $VULN_COUNT\"\n              if [ \"$VULN_COUNT\" -gt 0 ] && [ \"${AUDIT_FAIL_ON_HIGH:-true}\" = \"true\" ]; then\n                exit 1\n              fi\n            artifacts:\n              - npm-audit-report.json"
+      },
+      "required_variables": ["AUDIT_LEVEL", "AUDIT_FAIL_ON_HIGH"]
+    },
+    {
+      "component_type": "security_scan",
+      "identifier": "trivy_container_scan",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Run Trivy container scan\n        uses: aquasecurity/trivy-action@0.28.0\n        with:\n          image-ref: '${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}'\n          format: 'sarif'\n          output: 'trivy-results.sarif'\n          severity: '${{ vars.TRIVY_SEVERITY || \"CRITICAL,HIGH\" }}'\n          exit-code: '${{ vars.TRIVY_FAIL_ON_FINDING == \"true\" && \"1\" || \"0\" }}'\n      - name: Upload Trivy scan results\n        if: always()\n        uses: actions/upload-artifact@v4\n        with:\n          name: trivy-results\n          path: trivy-results.sarif",
+        "gitlab_ci": "  image: docker:latest\n  services:\n    - docker:dind\n  before_script:\n    - apk add --no-cache curl\n    - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin\n  script:\n    - trivy image --format sarif --output trivy-results.sarif --severity ${TRIVY_SEVERITY:-CRITICAL,HIGH} --exit-code ${TRIVY_FAIL_ON_FINDING:-0} $IMAGE_NAME:$IMAGE_TAG\n  artifacts:\n    when: always\n    paths:\n      - trivy-results.sarif",
+        "azure_devops": "          - script: |\n              curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin\n              trivy image --format sarif --output trivy-results.sarif --severity $(TRIVY_SEVERITY) --exit-code $(TRIVY_FAIL_ON_FINDING) $(IMAGE_NAME):$(IMAGE_TAG)\n            displayName: Trivy container scan\n          - task: PublishBuildArtifacts@1\n            condition: always()\n            inputs:\n              PathtoPublish: 'trivy-results.sarif'\n              ArtifactName: 'trivy-results'",
+        "jenkins": "                    sh '''\n                        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin\n                        trivy image --format sarif --output trivy-results.sarif --severity ${TRIVY_SEVERITY:-CRITICAL,HIGH} --exit-code ${TRIVY_FAIL_ON_FINDING:-0} ${IMAGE_NAME}:${IMAGE_TAG}\n                    '''\n                    archiveArtifacts artifacts: 'trivy-results.sarif', allowEmptyArchive: true",
+        "circleci": "            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin\n            trivy image --format sarif --output trivy-results.sarif --severity ${TRIVY_SEVERITY:-CRITICAL,HIGH} --exit-code ${TRIVY_FAIL_ON_FINDING:-0} $IMAGE_NAME:$IMAGE_TAG",
+        "bitbucket": "            - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin\n            - trivy image --format sarif --output trivy-results.sarif --severity ${TRIVY_SEVERITY:-CRITICAL,HIGH} --exit-code ${TRIVY_FAIL_ON_FINDING:-0} $IMAGE_NAME:$IMAGE_TAG\n            artifacts:\n              - trivy-results.sarif"
+      },
+      "required_variables": ["IMAGE_NAME", "IMAGE_TAG", "TRIVY_SEVERITY"]
+    },
+    {
+      "component_type": "security_scan",
+      "identifier": "gitleaks_secret_scan",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Run Gitleaks secret scan\n        uses: gitleaks/gitleaks-action@v2\n        env:\n          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}\n          GITLEAKS_CONFIG: ${{ vars.GITLEAKS_CONFIG_PATH || '.gitleaks.toml' }}",
+        "gitlab_ci": "  image: zricethezav/gitleaks:latest\n  script:\n    - gitleaks detect --source . --config ${GITLEAKS_CONFIG_PATH:-.gitleaks.toml} --report-format sarif --report-path gitleaks-report.sarif\n  artifacts:\n    when: always\n    paths:\n      - gitleaks-report.sarif",
+        "azure_devops": "          - script: |\n              docker run -v $(pwd):/repo zricethezav/gitleaks:latest detect --source /repo --config /repo/${GITLEAKS_CONFIG_PATH:-.gitleaks.toml} --report-format sarif --report-path /repo/gitleaks-report.sarif\n            displayName: Gitleaks secret scan",
+        "jenkins": "                    sh '''\n                        docker run -v $(pwd):/repo zricethezav/gitleaks:latest detect --source /repo --config /repo/${GITLEAKS_CONFIG_PATH:-.gitleaks.toml} --report-format sarif --report-path /repo/gitleaks-report.sarif\n                    '''\n                    archiveArtifacts artifacts: 'gitleaks-report.sarif', allowEmptyArchive: true",
+        "circleci": "            docker run -v $(pwd):/repo zricethezav/gitleaks:latest detect --source /repo --config /repo/${GITLEAKS_CONFIG_PATH:-.gitleaks.toml} --report-format sarif --report-path /repo/gitleaks-report.sarif",
+        "bitbucket": "            - docker run -v $(pwd):/repo zricethezav/gitleaks:latest detect --source /repo --config /repo/${GITLEAKS_CONFIG_PATH:-.gitleaks.toml} --report-format sarif --report-path /repo/gitleaks-report.sarif\n            artifacts:\n              - gitleaks-report.sarif"
+      },
+      "required_variables": ["GITLEAKS_CONFIG_PATH"]
+    },
+    {
+      "component_type": "security_scan",
+      "identifier": "codeql_sast_scan",
+      "execution_strategy": "platform_specific",
+      "templates": {
+        "github_actions": "      - name: Initialize CodeQL\n        uses: github/codeql-action/init@v3\n        with:\n          languages: ${{ vars.CODEQL_LANGUAGES || 'javascript' }}\n      - name: Autobuild\n        uses: github/codeql-action/autobuild@v3\n      - name: Perform CodeQL Analysis\n        uses: github/codeql-action/analyze@v3",
+        "gitlab_ci": "  image: node:20-bullseye\n  script:\n    - echo 'CodeQL is GitHub-native; on GitLab, substitute Semgrep or SonarQube SAST for equivalent coverage.'\n    - npx semgrep --config=auto --sarif --output=semgrep-results.sarif .\n  artifacts:\n    when: always\n    paths:\n      - semgrep-results.sarif",
+        "azure_devops": "          - script: |\n              echo 'CodeQL is GitHub-native; on Azure DevOps, substitute Semgrep or a Microsoft Security DevOps task.'\n              npx semgrep --config=auto --sarif --output=semgrep-results.sarif .\n            displayName: SAST Scan (Semgrep fallback)",
+        "jenkins": "                    sh '''\n                        echo 'CodeQL is GitHub-native; on Jenkins, substitute Semgrep for equivalent SAST coverage.'\n                        npx semgrep --config=auto --sarif --output=semgrep-results.sarif .\n                    '''\n                    archiveArtifacts artifacts: 'semgrep-results.sarif', allowEmptyArchive: true",
+        "circleci": "            echo 'CodeQL is GitHub-native; on CircleCI, substitute Semgrep for equivalent SAST coverage.'\n            npx semgrep --config=auto --sarif --output=semgrep-results.sarif .",
+        "bitbucket": "            - echo 'CodeQL is GitHub-native; on Bitbucket, substitute Semgrep for equivalent SAST coverage.'\n            - npx semgrep --config=auto --sarif --output=semgrep-results.sarif .\n            artifacts:\n              - semgrep-results.sarif"
+      },
+      "required_variables": ["CODEQL_LANGUAGES"]
+    },
+    {
+      "component_type": "security_scan",
+      "identifier": "iac_checkov_scan",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Run Checkov IaC scan\n        uses: bridgecrewio/checkov-action@v12\n        with:\n          directory: ${{ vars.IAC_SCAN_DIR || '.' }}\n          output_format: sarif\n          output_file_path: checkov-results.sarif\n          soft_fail: ${{ vars.IAC_SOFT_FAIL || 'false' }}\n      - uses: actions/upload-artifact@v4\n        if: always()\n        with:\n          name: checkov-results\n          path: checkov-results.sarif",
+        "gitlab_ci": "  image: bridgecrew/checkov:latest\n  script:\n    - checkov -d ${IAC_SCAN_DIR:-.} --output sarif --output-file-path checkov-results.sarif --soft-fail=${IAC_SOFT_FAIL:-false}\n  artifacts:\n    when: always\n    paths:\n      - checkov-results.sarif",
+        "azure_devops": "          - script: |\n              pip install checkov\n              checkov -d $(IAC_SCAN_DIR) --output sarif --output-file-path checkov-results.sarif --soft-fail=$(IAC_SOFT_FAIL)\n            displayName: Checkov IaC scan",
+        "jenkins": "                    sh '''\n                        pip install checkov\n                        checkov -d ${IAC_SCAN_DIR:-.} --output sarif --output-file-path checkov-results.sarif --soft-fail=${IAC_SOFT_FAIL:-false}\n                    '''\n                    archiveArtifacts artifacts: 'checkov-results.sarif', allowEmptyArchive: true",
+        "circleci": "            pip install checkov\n            checkov -d ${IAC_SCAN_DIR:-.} --output sarif --output-file-path checkov-results.sarif --soft-fail=${IAC_SOFT_FAIL:-false}",
+        "bitbucket": "            - pip install checkov\n            - checkov -d ${IAC_SCAN_DIR:-.} --output sarif --output-file-path checkov-results.sarif --soft-fail=${IAC_SOFT_FAIL:-false}\n            artifacts:\n              - checkov-results.sarif"
+      },
+      "required_variables": ["IAC_SCAN_DIR", "IAC_SOFT_FAIL"]
+    },
+    {
+      "component_type": "alerting",
+      "identifier": "teams_webhook",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Send Microsoft Teams Notification\n        run: |\n          STATUS=\"${{ needs.deploy.result == 'success' && 'SUCCESS' || 'FAILED' }}\"\n          COLOR=\"${{ needs.deploy.result == 'success' && '28a745' || 'd93025' }}\"\n          curl -X POST -H 'Content-Type: application/json' \\\n            -d \"{\n              \\\"@type\\\": \\\"MessageCard\\\",\n              \\\"@context\\\": \\\"http://schema.org/extensions\\\",\n              \\\"themeColor\\\": \\\"${COLOR}\\\",\n              \\\"summary\\\": \\\"Pipeline ${STATUS}\\\",\n              \\\"sections\\\": [{\n                \\\"activityTitle\\\": \\\"Pipeline ${STATUS}\\\",\n                \\\"facts\\\": [\n                  { \\\"name\\\": \\\"Repository\\\", \\\"value\\\": \\\"${{ github.repository }}\\\" },\n                  { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${{ github.ref_name }}\\\" },\n                  { \\\"name\\\": \\\"Commit\\\", \\\"value\\\": \\\"${{ github.sha }}\\\" },\n                  { \\\"name\\\": \\\"Run\\\", \\\"value\\\": \\\"#${{ github.run_number }}\\\" }\n                ],\n                \\\"markdown\\\": true\n              }],\n              \\\"potentialAction\\\": [{\n                \\\"@type\\\": \\\"OpenUri\\\",\n                \\\"name\\\": \\\"View Run\\\",\n                \\\"targets\\\": [{ \\\"os\\\": \\\"default\\\", \\\"uri\\\": \\\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\\\" }]\n              }]\n            }\" ${{ secrets.TEAMS_WEBHOOK_URL }}",
+        "gitlab_ci": "    - |\n      STATUS=\"SUCCESS\"; COLOR=\"28a745\"\n      if [ \"${CI_JOB_STATUS}\" != \"success\" ]; then STATUS=\"FAILED\"; COLOR=\"d93025\"; fi\n      curl -X POST -H 'Content-Type: application/json' \\\n        -d \"{\n          \\\"@type\\\": \\\"MessageCard\\\",\n          \\\"@context\\\": \\\"http://schema.org/extensions\\\",\n          \\\"themeColor\\\": \\\"${COLOR}\\\",\n          \\\"summary\\\": \\\"Pipeline ${STATUS}\\\",\n          \\\"sections\\\": [{\n            \\\"activityTitle\\\": \\\"Pipeline ${STATUS}\\\",\n            \\\"facts\\\": [\n              { \\\"name\\\": \\\"Project\\\", \\\"value\\\": \\\"${CI_PROJECT_NAME}\\\" },\n              { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${CI_COMMIT_REF_NAME}\\\" },\n              { \\\"name\\\": \\\"Commit\\\", \\\"value\\\": \\\"${CI_COMMIT_SHORT_SHA}\\\" },\n              { \\\"name\\\": \\\"Pipeline\\\", \\\"value\\\": \\\"#${CI_PIPELINE_ID}\\\" }\n            ],\n            \\\"markdown\\\": true\n          }],\n          \\\"potentialAction\\\": [{\n            \\\"@type\\\": \\\"OpenUri\\\",\n            \\\"name\\\": \\\"View Pipeline\\\",\n            \\\"targets\\\": [{ \\\"os\\\": \\\"default\\\", \\\"uri\\\": \\\"${CI_PIPELINE_URL}\\\" }]\n          }]\n        }\" $TEAMS_WEBHOOK_URL",
+        "azure_devops": "          - task: MSTeamsNotification@1\n            inputs:\n              webhookUrl: '$(TEAMS_WEBHOOK_URL)'\n              title: 'Pipeline Result'\n              message: |\n                Repository: $(Build.Repository.Name)\n                Branch: $(Build.SourceBranchName)\n                Build: $(Build.BuildNumber)\n                View: $(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)",
+        "jenkins": "                    sh \"\"\"\n                        STATUS=\"SUCCESS\"\n                        COLOR=\"28a745\"\n                        if [ \\\"${currentBuild.currentResult}\\\" != \\\"SUCCESS\\\" ]; then STATUS=\\\"FAILED\\\"; COLOR=\\\"d93025\\\"; fi\n                        curl -X POST -H 'Content-Type: application/json' \\\n                            --data \"{\n                                \\\"@type\\\": \\\"MessageCard\\\",\n                                \\\"@context\\\": \\\"http://schema.org/extensions\\\",\n                                \\\"themeColor\\\": \\\"\\${COLOR}\\\",\n                                \\\"summary\\\": \\\"Pipeline \\${STATUS}\\\",\n                                \\\"sections\\\": [{\n                                    \\\"activityTitle\\\": \\\"Pipeline \\${STATUS}\\\",\n                                    \\\"facts\\\": [\n                                        { \\\"name\\\": \\\"Job\\\", \\\"value\\\": \\\"${JOB_NAME}\\\" },\n                                        { \\\"name\\\": \\\"Build\\\", \\\"value\\\": \\\"#${BUILD_NUMBER}\\\" },\n                                        { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${GIT_BRANCH}\\\" }\n                                    ],\n                                    \\\"markdown\\\": true\n                                }]\n                            }\" ${TEAMS_WEBHOOK_URL}\n                    \"\"\"",
+        "circleci": "            if [ \"$CIRCLE_JOB_STATUS\" = \"success\" ]; then STATUS=\"SUCCESS\"; COLOR=\"28a745\"; else STATUS=\"FAILED\"; COLOR=\"d93025\"; fi\n            curl -X POST -H 'Content-Type: application/json' \\\n              -d \"{\n                \\\"@type\\\": \\\"MessageCard\\\",\n                \\\"@context\\\": \\\"http://schema.org/extensions\\\",\n                \\\"themeColor\\\": \\\"${COLOR}\\\",\n                \\\"summary\\\": \\\"Pipeline ${STATUS}\\\",\n                \\\"sections\\\": [{\n                  \\\"activityTitle\\\": \\\"Pipeline ${STATUS}\\\",\n                  \\\"facts\\\": [\n                    { \\\"name\\\": \\\"Project\\\", \\\"value\\\": \\\"${CIRCLE_PROJECT_REPONAME}\\\" },\n                    { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${CIRCLE_BRANCH}\\\" },\n                    { \\\"name\\\": \\\"Build\\\", \\\"value\\\": \\\"#${CIRCLE_BUILD_NUM}\\\" }\n                  ],\n                  \\\"markdown\\\": true\n                }]\n              }\" $TEAMS_WEBHOOK_URL",
+        "bitbucket": "            - |\n              STATUS=\"SUCCESS\"; COLOR=\"28a745\"\n              if [ \"$BITBUCKET_EXIT_CODE\" != \"0\" ]; then STATUS=\"FAILED\"; COLOR=\"d93025\"; fi\n              curl -X POST -H 'Content-Type: application/json' \\\n                -d \"{\n                  \\\"@type\\\": \\\"MessageCard\\\",\n                  \\\"@context\\\": \\\"http://schema.org/extensions\\\",\n                  \\\"themeColor\\\": \\\"${COLOR}\\\",\n                  \\\"summary\\\": \\\"Pipeline ${STATUS}\\\",\n                  \\\"sections\\\": [{\n                    \\\"activityTitle\\\": \\\"Pipeline ${STATUS}\\\",\n                    \\\"facts\\\": [\n                      { \\\"name\\\": \\\"Repo\\\", \\\"value\\\": \\\"${BITBUCKET_REPO_SLUG}\\\" },\n                      { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${BITBUCKET_BRANCH}\\\" }\n                    ],\n                    \\\"markdown\\\": true\n                  }]\n                }\" $TEAMS_WEBHOOK_URL"
+      },
+      "required_variables": ["TEAMS_WEBHOOK_URL"]
+    },
+    {
+      "component_type": "alerting",
+      "identifier": "discord_webhook",
+      "execution_strategy": "shell_agnostic",
+      "templates": {
+        "github_actions": "      - name: Send Discord Notification\n        run: |\n          STATUS=\"${{ needs.deploy.result == 'success' && '✅ SUCCESS' || '❌ FAILED' }}\"\n          curl -X POST -H 'Content-Type: application/json' \\\n            -d \"{\n              \\\"embeds\\\": [{\n                \\\"title\\\": \\\"Pipeline ${STATUS}\\\",\n                \\\"color\\\": ${{ needs.deploy.result == 'success' && '3066993' || '15158332' }},\n                \\\"fields\\\": [\n                  { \\\"name\\\": \\\"Repository\\\", \\\"value\\\": \\\"${{ github.repository }}\\\", \\\"inline\\\": true },\n                  { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${{ github.ref_name }}\\\", \\\"inline\\\": true },\n                  { \\\"name\\\": \\\"Commit\\\", \\\"value\\\": \\\"${{ github.sha }}\\\", \\\"inline\\\": false }\n                ],\n                \\\"url\\\": \\\"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\\\"\n              }]\n            }\" ${{ secrets.DISCORD_WEBHOOK_URL }}",
+        "gitlab_ci": "    - |\n      STATUS=\"✅ SUCCESS\"; COLOR=3066993\n      if [ \"${CI_JOB_STATUS}\" != \"success\" ]; then STATUS=\"❌ FAILED\"; COLOR=15158332; fi\n      curl -X POST -H 'Content-Type: application/json' \\\n        -d \"{\n          \\\"embeds\\\": [{\n            \\\"title\\\": \\\"Pipeline ${STATUS}\\\",\n            \\\"color\\\": ${COLOR},\n            \\\"fields\\\": [\n              { \\\"name\\\": \\\"Project\\\", \\\"value\\\": \\\"${CI_PROJECT_NAME}\\\", \\\"inline\\\": true },\n              { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${CI_COMMIT_REF_NAME}\\\", \\\"inline\\\": true }\n            ],\n            \\\"url\\\": \\\"${CI_PIPELINE_URL}\\\"\n          }]\n        }\" $DISCORD_WEBHOOK_URL",
+        "azure_devops": "          - script: |\n              curl -X POST -H 'Content-Type: application/json' \\\n                -d \"{\n                  \\\"embeds\\\": [{\n                    \\\"title\\\": \\\"Pipeline Completed\\\",\n                    \\\"fields\\\": [\n                      { \\\"name\\\": \\\"Repository\\\", \\\"value\\\": \\\"$(Build.Repository.Name)\\\", \\\"inline\\\": true },\n                      { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"$(Build.SourceBranchName)\\\", \\\"inline\\\": true }\n                    ],\n                    \\\"url\\\": \\\"$(System.CollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)\\\"\n                  }]\n                }\" $(DISCORD_WEBHOOK_URL)\n            displayName: Discord Notification",
+        "jenkins": "                    sh \"\"\"\n                        STATUS=\"✅ SUCCESS\"\n                        COLOR=3066993\n                        if [ \\\"${currentBuild.currentResult}\\\" != \\\"SUCCESS\\\" ]; then STATUS=\\\"❌ FAILED\\\"; COLOR=15158332; fi\n                        curl -X POST -H 'Content-Type: application/json' \\\n                            --data \"{\n                                \\\"embeds\\\": [{\n                                    \\\"title\\\": \\\"Pipeline \\${STATUS}\\\",\n                                    \\\"color\\\": \\${COLOR},\n                                    \\\"fields\\\": [\n                                        { \\\"name\\\": \\\"Job\\\", \\\"value\\\": \\\"${JOB_NAME}\\\", \\\"inline\\\": true },\n                                        { \\\"name\\\": \\\"Build\\\", \\\"value\\\": \\\"#${BUILD_NUMBER}\\\", \\\"inline\\\": true }\n                                    ]\n                                }]\n                            }\" ${DISCORD_WEBHOOK_URL}\n                    \"\"\"",
+        "circleci": "            if [ \"$CIRCLE_JOB_STATUS\" = \"success\" ]; then STATUS=\"✅ SUCCESS\"; COLOR=3066993; else STATUS=\"❌ FAILED\"; COLOR=15158332; fi\n            curl -X POST -H 'Content-Type: application/json' \\\n              -d \"{\n                \\\"embeds\\\": [{\n                  \\\"title\\\": \\\"Pipeline ${STATUS}\\\",\n                  \\\"color\\\": ${COLOR},\n                  \\\"fields\\\": [\n                    { \\\"name\\\": \\\"Project\\\", \\\"value\\\": \\\"${CIRCLE_PROJECT_REPONAME}\\\", \\\"inline\\\": true },\n                    { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${CIRCLE_BRANCH}\\\", \\\"inline\\\": true }\n                  ]\n                }]\n              }\" $DISCORD_WEBHOOK_URL",
+        "bitbucket": "            - |\n              STATUS=\"✅ SUCCESS\"; COLOR=3066993\n              if [ \"$BITBUCKET_EXIT_CODE\" != \"0\" ]; then STATUS=\"❌ FAILED\"; COLOR=15158332; fi\n              curl -X POST -H 'Content-Type: application/json' \\\n                -d \"{\n                  \\\"embeds\\\": [{\n                    \\\"title\\\": \\\"Pipeline ${STATUS}\\\",\n                    \\\"color\\\": ${COLOR},\n                    \\\"fields\\\": [\n                      { \\\"name\\\": \\\"Repo\\\", \\\"value\\\": \\\"${BITBUCKET_REPO_SLUG}\\\", \\\"inline\\\": true },\n                      { \\\"name\\\": \\\"Branch\\\", \\\"value\\\": \\\"${BITBUCKET_BRANCH}\\\", \\\"inline\\\": true }\n                    ]\n                  }]\n                }\" $DISCORD_WEBHOOK_URL"
+      },
+      "required_variables": ["DISCORD_WEBHOOK_URL"]
+    },
+    {
+      "component_type": "deployment_target",
+      "identifier": "aws_lambda_serverless_deploy",
+      "execution_strategy": "platform_specific",
+      "templates": {
+        "github_actions": "      - name: Configure AWS Credentials via OIDC\n        uses: aws-actions/configure-aws-credentials@v4\n        with:\n          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}\n          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}\n      - name: Package Lambda function\n        run: |\n          zip -r function.zip . -x '*.git*' 'node_modules/.cache/*'\n      - name: Deploy to AWS Lambda\n        run: |\n          aws lambda update-function-code \\\n            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \\\n            --zip-file fileb://function.zip \\\n            --region ${{ vars.AWS_REGION || 'us-east-1' }}\n          aws lambda wait function-updated \\\n            --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} \\\n            --region ${{ vars.AWS_REGION || 'us-east-1' }}\n      - name: Verify Lambda deployment\n        run: |\n          aws lambda invoke --function-name ${{ secrets.LAMBDA_FUNCTION_NAME }} --payload '{}' /tmp/response.json --region ${{ vars.AWS_REGION || 'us-east-1' }}\n          cat /tmp/response.json",
+        "gitlab_ci": "  image: python:3.11-slim\n  before_script:\n    - apt-get update && apt-get install -y zip awscli\n  script:\n    - zip -r function.zip . -x '*.git*'\n    - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --zip-file fileb://function.zip --region $AWS_REGION\n    - aws lambda wait function-updated --function-name $LAMBDA_FUNCTION_NAME --region $AWS_REGION\n    - aws lambda invoke --function-name $LAMBDA_FUNCTION_NAME --payload '{}' /tmp/response.json --region $AWS_REGION\n    - cat /tmp/response.json",
+        "azure_devops": "          - script: |\n              zip -r function.zip . -x '*.git*'\n              aws lambda update-function-code --function-name $(LAMBDA_FUNCTION_NAME) --zip-file fileb://function.zip --region $(AWS_REGION)\n              aws lambda wait function-updated --function-name $(LAMBDA_FUNCTION_NAME) --region $(AWS_REGION)\n            displayName: Deploy to AWS Lambda\n          - script: |\n              aws lambda invoke --function-name $(LAMBDA_FUNCTION_NAME) --payload '{}' /tmp/response.json --region $(AWS_REGION)\n              cat /tmp/response.json\n            displayName: Verify Lambda deployment",
+        "jenkins": "                    withAWS(region: \"${AWS_REGION}\", credentials: 'aws-credentials-id') {\n                        sh '''\n                            zip -r function.zip . -x '*.git*'\n                            aws lambda update-function-code --function-name ${LAMBDA_FUNCTION_NAME} --zip-file fileb://function.zip --region ${AWS_REGION}\n                            aws lambda wait function-updated --function-name ${LAMBDA_FUNCTION_NAME} --region ${AWS_REGION}\n                            aws lambda invoke --function-name ${LAMBDA_FUNCTION_NAME} --payload '{}' /tmp/response.json --region ${AWS_REGION}\n                            cat /tmp/response.json\n                        '''\n                    }",
+        "circleci": "            zip -r function.zip . -x '*.git*'\n            aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --zip-file fileb://function.zip --region $AWS_REGION\n            aws lambda wait function-updated --function-name $LAMBDA_FUNCTION_NAME --region $AWS_REGION\n            aws lambda invoke --function-name $LAMBDA_FUNCTION_NAME --payload '{}' /tmp/response.json --region $AWS_REGION\n            cat /tmp/response.json",
+        "bitbucket": "            - zip -r function.zip . -x '*.git*'\n            - aws lambda update-function-code --function-name $LAMBDA_FUNCTION_NAME --zip-file fileb://function.zip --region $AWS_REGION\n            - aws lambda wait function-updated --function-name $LAMBDA_FUNCTION_NAME --region $AWS_REGION\n            - aws lambda invoke --function-name $LAMBDA_FUNCTION_NAME --payload '{}' /tmp/response.json --region $AWS_REGION\n            - cat /tmp/response.json"
+      },
+      "required_variables": ["LAMBDA_FUNCTION_NAME", "AWS_REGION", "AWS_ROLE_ARN"]
+    },
+    {
+      "component_type": "deployment_target",
+      "identifier": "s3_cloudfront_static_deploy",
+      "execution_strategy": "platform_specific",
+      "templates": {
+        "github_actions": "      - name: Configure AWS Credentials via OIDC\n        uses: aws-actions/configure-aws-credentials@v4\n        with:\n          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}\n          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}\n      - name: Sync build output to S3\n        run: |\n          aws s3 sync ${{ vars.STATIC_BUILD_DIR || './dist' }} s3://${{ secrets.S3_BUCKET_NAME }} --delete --cache-control max-age=31536000,public\n          aws s3 cp s3://${{ secrets.S3_BUCKET_NAME }}/index.html s3://${{ secrets.S3_BUCKET_NAME }}/index.html --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate\n      - name: Invalidate CloudFront cache\n        run: |\n          DISTRIBUTION_ID=${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}\n          INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths '/*' --query 'Invalidation.Id' --output text)\n          echo \"Invalidation created: $INVALIDATION_ID\"\n          aws cloudfront wait invalidation-completed --distribution-id $DISTRIBUTION_ID --id $INVALIDATION_ID\n      - name: Verify static site\n        run: |\n          curl -sf -o /dev/null -w '%{http_code}' \"https://${{ secrets.CLOUDFRONT_DOMAIN }}\" || echo 'Verification failed'",
+        "gitlab_ci": "  image: amazon/aws-cli:latest\n  script:\n    - aws s3 sync ${STATIC_BUILD_DIR:-./dist} s3://$S3_BUCKET_NAME --delete --cache-control max-age=31536000,public\n    - aws s3 cp s3://$S3_BUCKET_NAME/index.html s3://$S3_BUCKET_NAME/index.html --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate\n    - |\n      INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*' --query 'Invalidation.Id' --output text)\n      echo \"Invalidation created: $INVALIDATION_ID\"\n      aws cloudfront wait invalidation-completed --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --id $INVALIDATION_ID\n    - curl -sf -o /dev/null -w '%{http_code}' \"https://$CLOUDFRONT_DOMAIN\" || echo 'Verification failed'",
+        "azure_devops": "          - script: |\n              aws s3 sync $(STATIC_BUILD_DIR) s3://$(S3_BUCKET_NAME) --delete --cache-control max-age=31536000,public\n              aws s3 cp s3://$(S3_BUCKET_NAME)/index.html s3://$(S3_BUCKET_NAME)/index.html --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate\n            displayName: Sync to S3\n          - script: |\n              INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id $(CLOUDFRONT_DISTRIBUTION_ID) --paths '/*' --query 'Invalidation.Id' --output text)\n              aws cloudfront wait invalidation-completed --distribution-id $(CLOUDFRONT_DISTRIBUTION_ID) --id $INVALIDATION_ID\n              curl -sf -o /dev/null -w '%{http_code}' \"https://$(CLOUDFRONT_DOMAIN)\" || echo 'Verification failed'\n            displayName: Invalidate CloudFront and verify",
+        "jenkins": "                    withAWS(region: \"${AWS_REGION}\", credentials: 'aws-credentials-id') {\n                        sh '''\n                            aws s3 sync ${STATIC_BUILD_DIR:-./dist} s3://${S3_BUCKET_NAME} --delete --cache-control max-age=31536000,public\n                            aws s3 cp s3://${S3_BUCKET_NAME}/index.html s3://${S3_BUCKET_NAME}/index.html --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate\n                            INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths '/*' --query 'Invalidation.Id' --output text)\n                            aws cloudfront wait invalidation-completed --distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --id $INVALIDATION_ID\n                            curl -sf -o /dev/null -w '%{http_code}' \"https://${CLOUDFRONT_DOMAIN}\" || echo 'Verification failed'\n                        '''\n                    }",
+        "circleci": "            aws s3 sync ${STATIC_BUILD_DIR:-./dist} s3://$S3_BUCKET_NAME --delete --cache-control max-age=31536000,public\n            aws s3 cp s3://$S3_BUCKET_NAME/index.html s3://$S3_BUCKET_NAME/index.html --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate\n            INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*' --query 'Invalidation.Id' --output text)\n            aws cloudfront wait invalidation-completed --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --id $INVALIDATION_ID\n            curl -sf -o /dev/null -w '%{http_code}' \"https://$CLOUDFRONT_DOMAIN\" || echo 'Verification failed'",
+        "bitbucket": "            - aws s3 sync ${STATIC_BUILD_DIR:-./dist} s3://$S3_BUCKET_NAME --delete --cache-control max-age=31536000,public\n            - aws s3 cp s3://$S3_BUCKET_NAME/index.html s3://$S3_BUCKET_NAME/index.html --metadata-directive REPLACE --cache-control max-age=0,no-cache,no-store,must-revalidate\n            - |\n              INVALIDATION_ID=$(aws cloudfront create-invalidation --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --paths '/*' --query 'Invalidation.Id' --output text)\n              aws cloudfront wait invalidation-completed --distribution-id $CLOUDFRONT_DISTRIBUTION_ID --id $INVALIDATION_ID\n            - curl -sf -o /dev/null -w '%{http_code}' \"https://$CLOUDFRONT_DOMAIN\" || echo 'Verification failed'"
+      },
+      "required_variables": ["S3_BUCKET_NAME", "CLOUDFRONT_DISTRIBUTION_ID", "CLOUDFRONT_DOMAIN", "AWS_REGION", "AWS_ROLE_ARN", "STATIC_BUILD_DIR"]
+    },
+    {
+      "component_type": "deployment_target",
+      "identifier": "azure_functions_deploy",
+      "execution_strategy": "platform_specific",
+      "templates": {
+        "github_actions": "      - name: Azure Login via OIDC\n        uses: azure/login@v2\n        with:\n          client-id: ${{ secrets.AZURE_CLIENT_ID }}\n          tenant-id: ${{ secrets.AZURE_TENANT_ID }}\n          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}\n      - name: Deploy to Azure Functions\n        uses: azure/functions-action@v1\n        with:\n          app-name: ${{ secrets.AZURE_FUNCTIONAPP_NAME }}\n          package: ${{ vars.FUNCTIONAPP_PACKAGE_PATH || '.' }}\n      - name: Verify Azure Functions deployment\n        run: |\n          curl -sf -o /dev/null -w '%{http_code}' \"https://${{ secrets.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/health\" || echo 'Health check failed'",
+        "gitlab_ci": "  image: mcr.microsoft.com/azure-cli\n  script:\n    - az login --service-principal -u \"$AZURE_CLIENT_ID\" -p \"$AZURE_CLIENT_SECRET\" --tenant \"$AZURE_TENANT_ID\"\n    - az account set --subscription \"$AZURE_SUBSCRIPTION_ID\"\n    - zip -r function.zip . -x '*.git*'\n    - az functionapp deployment source config-zip --name $AZURE_FUNCTIONAPP_NAME --resource-group $AZURE_RESOURCE_GROUP --src function.zip\n    - curl -sf -o /dev/null -w '%{http_code}' \"https://$AZURE_FUNCTIONAPP_NAME.azurewebsites.net/api/health\" || echo 'Health check failed'",
+        "azure_devops": "          - task: AzureFunctionApp@2\n            inputs:\n              azureSubscription: '$(AZURE_SERVICE_CONNECTION)'\n              appType: 'functionApp'\n              appName: '$(AZURE_FUNCTIONAPP_NAME)'\n              package: '$(FUNCTIONAPP_PACKAGE_PATH)'\n            displayName: Deploy to Azure Functions\n          - script: |\n              curl -sf -o /dev/null -w '%{http_code}' \"https://$(AZURE_FUNCTIONAPP_NAME).azurewebsites.net/api/health\" || echo 'Health check failed'\n            displayName: Verify deployment",
+        "jenkins": "                    withAzure([azureCredentialsId: 'azure-service-principal']) {\n                        sh '''\n                            zip -r function.zip . -x '*.git*'\n                            az functionapp deployment source config-zip --name ${AZURE_FUNCTIONAPP_NAME} --resource-group ${AZURE_RESOURCE_GROUP} --src function.zip\n                            curl -sf -o /dev/null -w '%{http_code}' \"https://${AZURE_FUNCTIONAPP_NAME}.azurewebsites.net/api/health\" || echo 'Health check failed'\n                        '''\n                    }",
+        "circleci": "            az login --service-principal -u \"$AZURE_CLIENT_ID\" -p \"$AZURE_CLIENT_SECRET\" --tenant \"$AZURE_TENANT_ID\"\n            az account set --subscription \"$AZURE_SUBSCRIPTION_ID\"\n            zip -r function.zip . -x '*.git*'\n            az functionapp deployment source config-zip --name $AZURE_FUNCTIONAPP_NAME --resource-group $AZURE_RESOURCE_GROUP --src function.zip\n            curl -sf -o /dev/null -w '%{http_code}' \"https://$AZURE_FUNCTIONAPP_NAME.azurewebsites.net/api/health\" || echo 'Health check failed'",
+        "bitbucket": "            - az login --service-principal -u \"$AZURE_CLIENT_ID\" -p \"$AZURE_CLIENT_SECRET\" --tenant \"$AZURE_TENANT_ID\"\n            - az account set --subscription \"$AZURE_SUBSCRIPTION_ID\"\n            - zip -r function.zip . -x '*.git*'\n            - az functionapp deployment source config-zip --name $AZURE_FUNCTIONAPP_NAME --resource-group $AZURE_RESOURCE_GROUP --src function.zip\n            - curl -sf -o /dev/null -w '%{http_code}' \"https://$AZURE_FUNCTIONAPP_NAME.azurewebsites.net/api/health\" || echo 'Health check failed'"
+      },
+      "required_variables": ["AZURE_FUNCTIONAPP_NAME", "AZURE_RESOURCE_GROUP", "AZURE_CLIENT_ID", "AZURE_TENANT_ID", "AZURE_SUBSCRIPTION_ID", "FUNCTIONAPP_PACKAGE_PATH"]
+      },
+    {
+      "component_type": "failure_handling",
+      "identifier": "ssh_key_cleanup",
+      "execution_strategy": "shell_agnostic",
+      "notes": "Should run as the final step of any job that wrote a private key to disk (ec2_ssh_deploy, docker_host_deploy, azure_vm_deploy, gcp_vm_deploy), regardless of job outcome.",
+      "templates": {
+        "github_actions": "      - name: Clean up SSH key\n        if: always()\n        run: |\n          rm -f ~/.ssh/deploy_key ~/.ssh/docker_host_key ~/.ssh/azure_vm_key ~/.ssh/gcp_vm_key 2>/dev/null || true\n          echo \"SSH key material removed from runner.\"",
+        "gitlab_ci": "    - |\n      rm -f ~/.ssh/deploy_key ~/.ssh/docker_host_key ~/.ssh/azure_vm_key ~/.ssh/gcp_vm_key 2>/dev/null || true\n      echo \"SSH key material removed from runner.\"",
+        "azure_devops": "          - script: |\n              rm -f ~/.ssh/deploy_key ~/.ssh/docker_host_key ~/.ssh/azure_vm_key ~/.ssh/gcp_vm_key 2>/dev/null || true\n              echo \"SSH key material removed from runner.\"\n            condition: always()\n            displayName: Clean up SSH key",
+        "jenkins": "                    sh '''\n                        rm -f ~/.ssh/deploy_key ~/.ssh/docker_host_key ~/.ssh/azure_vm_key ~/.ssh/gcp_vm_key 2>/dev/null || true\n                        echo \"SSH key material removed from runner.\"\n                    '''",
+        "circleci": "            rm -f ~/.ssh/deploy_key ~/.ssh/docker_host_key ~/.ssh/azure_vm_key ~/.ssh/gcp_vm_key 2>/dev/null || true\n            echo \"SSH key material removed from runner.\"",
+        "bitbucket": "            - rm -f ~/.ssh/deploy_key ~/.ssh/docker_host_key ~/.ssh/azure_vm_key ~/.ssh/gcp_vm_key 2>/dev/null || true\n            - echo \"SSH key material removed from runner.\""
+      },
+      "required_variables": []
+    },
+    {
+      "component_type": "failure_handling",
+      "identifier": "manual_approval_gate",
+      "execution_strategy": "platform_specific",
+      "notes": "Inserted between test and deploy stages for production releases. GitHub/Azure/GitLab support this natively via environment protection rules; Jenkins/CircleCI/Bitbucket require an explicit input/hold step.",
+      "templates": {
+        "github_actions": "  deploy:\n    name: Deploy\n    runs-on: ubuntu-latest\n    needs: test\n    if: github.ref == 'refs/heads/main'\n    environment:\n      name: ${{ vars.APPROVAL_ENVIRONMENT || 'production' }}\n    steps:\n      - uses: actions/checkout@v4\n      # NOTE: configure required reviewers on the 'production' environment\n      # under Settings > Environments so this job pauses for manual approval.",
+        "gitlab_ci": "deploy:\n  stage: deploy\n  only:\n    - main\n  when: manual\n  environment:\n    name: ${APPROVAL_ENVIRONMENT:-production}\n  script:\n    - echo 'Manual approval required to proceed with deploy.'",
+        "azure_devops": "  - stage: Deploy\n    displayName: Deploy Stage\n    dependsOn: Test\n    jobs:\n      - deployment: DeployJob\n        displayName: Deploy\n        environment: '$(APPROVAL_ENVIRONMENT)'\n        # NOTE: configure approvals and checks on the Azure DevOps Environment\n        # resource so this stage pauses for manual approval.\n        strategy:\n          runOnce:\n            deploy:\n              steps:\n                - checkout: self",
+        "jenkins": "                    input message: 'Approve deployment to production?', ok: 'Deploy'",
+        "circleci": "  hold_for_approval:\n    type: approval\n\nworkflows:\n  main:\n    jobs:\n      - pipeline_run\n      - hold_for_approval:\n          requires:\n            - pipeline_run\n      - deploy_job:\n          requires:\n            - hold_for_approval",
+        "bitbucket": "      - step:\n          name: Manual approval\n          trigger: manual\n          script:\n            - echo 'Manual approval required to proceed with deploy.'"
+      },
+      "required_variables": ["APPROVAL_ENVIRONMENT"]
+    }
+  ],
+  "compatibility_matrix": {
+    "description": "Maps which components can be combined safely, which auth method each deployment_target expects, and cross-component dependencies. An AI composing a pipeline should consult this before selecting components together.",
+    "auth_requirements": {
+      "ec2_ssh_deploy": { "auth_type": "static_ssh_key", "recommended_cloud_auth": null, "cleanup_required": "ssh_key_cleanup" },
+      "ec2_ssm_deploy": { "auth_type": "oidc", "recommended_cloud_auth": "aws_oidc_credentials", "cleanup_required": null },
+      "docker_host_deploy": { "auth_type": "static_ssh_key", "recommended_cloud_auth": null, "cleanup_required": "ssh_key_cleanup" },
+      "ecs_fargate_deploy": { "auth_type": "oidc", "recommended_cloud_auth": "aws_oidc_credentials", "cleanup_required": null },
+      "eks_kubectl_deploy": { "auth_type": "oidc", "recommended_cloud_auth": "aws_oidc_credentials", "cleanup_required": null },
+      "kubernetes_kubectl_deploy": { "auth_type": "kubeconfig_secret", "recommended_cloud_auth": null, "cleanup_required": null },
+      "azure_vm_deploy": { "auth_type": "static_ssh_key", "recommended_cloud_auth": "azure_workload_identity", "cleanup_required": "ssh_key_cleanup" },
+      "gcp_vm_deploy": { "auth_type": "static_ssh_key", "recommended_cloud_auth": "gcp_workload_identity", "cleanup_required": "ssh_key_cleanup" },
+      "aws_lambda_serverless_deploy": { "auth_type": "oidc", "recommended_cloud_auth": "aws_oidc_credentials", "cleanup_required": null },
+      "s3_cloudfront_static_deploy": { "auth_type": "oidc", "recommended_cloud_auth": "aws_oidc_credentials", "cleanup_required": null },
+      "azure_functions_deploy": { "auth_type": "oidc", "recommended_cloud_auth": "azure_workload_identity", "cleanup_required": null },
+      "vercel_deploy": { "auth_type": "api_token", "recommended_cloud_auth": null, "cleanup_required": null },
+      "netlify_deploy": { "auth_type": "api_token", "recommended_cloud_auth": null, "cleanup_required": null },
+      "railway_deploy": { "auth_type": "api_token", "recommended_cloud_auth": null, "cleanup_required": null },
+      "render_deploy": { "auth_type": "api_token", "recommended_cloud_auth": null, "cleanup_required": null }
+    },
+    "tech_stack_to_recommended_deploy_target": {
+      "nextjs_node_build": ["vercel_deploy", "docker_host_deploy", "ecs_fargate_deploy"],
+      "vuejs_vite_build": ["netlify_deploy", "s3_cloudfront_static_deploy", "vercel_deploy"],
+      "reactjs_vite_build": ["netlify_deploy", "s3_cloudfront_static_deploy", "vercel_deploy"],
+      "vitejs_standalone_build": ["s3_cloudfront_static_deploy", "netlify_deploy"],
+      "expressjs_node_build": ["ec2_ssh_deploy", "docker_host_deploy", "ecs_fargate_deploy", "railway_deploy", "render_deploy"],
+      "flask_python_build": ["ec2_ssh_deploy", "docker_host_deploy", "aws_lambda_serverless_deploy", "render_deploy"],
+      "django_python_build": ["ec2_ssh_deploy", "docker_host_deploy", "ecs_fargate_deploy", "eks_kubectl_deploy"],
+      "fastapi_python_build": ["docker_host_deploy", "ecs_fargate_deploy", "aws_lambda_serverless_deploy", "render_deploy"],
+      "springboot_java_build": ["ec2_ssh_deploy", "ecs_fargate_deploy", "eks_kubectl_deploy", "kubernetes_kubectl_deploy"]
+    },
+    "test_type_to_component": {
+      "Unit Tests": ["pytest_runner", "jest_vitest_runner"],
+      "Integration Tests": ["pytest_runner", "jest_vitest_runner"],
+      "End-to-End (E2E) Tests": ["playwright_e2e_runner", "cypress_e2e_runner"],
+      "Smoke Tests": ["ec2_ssh_deploy (verify step)", "docker_host_deploy (verify step)"],
+      "Regression Tests": ["pytest_runner", "jest_vitest_runner"],
+      "Performance / Load Tests": ["not yet in database — candidate: k6, JMeter"],
+      "Accessibility Tests": ["not yet in database — candidate: axe-core, Lighthouse CI"],
+      "Visual Regression Tests": ["not yet in database — candidate: Percy, Chromatic"]
+    },
+    "security_scan_to_component": {
+      "SAST": ["codeql_sast_scan", "sonarqube_scanner"],
+      "DAST": ["not yet in database — candidate: OWASP ZAP"],
+      "Dependency Scanning (SCA)": ["snyk_dependency_scan", "npm_audit_scan"],
+      "Container/Image Scanning": ["trivy_container_scan"],
+      "Secret Scanning": ["gitleaks_secret_scan"],
+      "Infrastructure as Code (IaC) Scanning": ["iac_checkov_scan"]
+    },
+    "alerting_platform_support": {
+      "slack_webhook": ["github_actions", "gitlab_ci", "azure_devops", "jenkins", "circleci", "bitbucket"],
+      "teams_webhook": ["github_actions", "gitlab_ci", "azure_devops", "jenkins", "circleci", "bitbucket"],
+      "discord_webhook": ["github_actions", "gitlab_ci", "azure_devops", "jenkins", "circleci", "bitbucket"],
+      "google_chat_webhook": ["github_actions", "gitlab_ci", "azure_devops", "jenkins", "circleci", "bitbucket"],
+      "email_notification": ["github_actions", "gitlab_ci", "azure_devops", "jenkins", "circleci", "bitbucket"],
+      "sms_twilio_notification": ["github_actions", "gitlab_ci", "azure_devops", "jenkins", "circleci", "bitbucket"]
+    },
+    "known_bug_fixes_applied": [
+      "Rollback trigger should use 'needs.deploy.result == failure' rather than bare 'if: failure()', to avoid triggering rollback when an unrelated job (e.g. alert) fails instead of deploy.",
+      "SSH-based health checks referencing ${APP_PORT:-8080} inside a remote SSH command must have APP_PORT explicitly exported/passed into the SSH session — it is not inherited from the CI runner's environment.",
+      "azure_devops skeleton template previously had duplicate PIP_CACHE_DIR / npm_config_cache variable definitions — removed in this dataset's usage guidance.",
+      "job.status in alerting templates refers to the current (alert) job, not the upstream deploy job — use needs.deploy.result instead."
+    ],
+    "recommended_composition_order": [
+      "1. skeleton_wrapper (platform)",
+      "2. build_stack (tech stack)",
+      "3. code_quality (standard_linting, optionally sonarqube_scanner or codeql_sast_scan)",
+      "4. testing (unit/integration runner + optionally playwright_e2e_runner/cypress_e2e_runner)",
+      "5. security_scan (snyk_dependency_scan or npm_audit_scan; trivy_container_scan if containerized; gitleaks_secret_scan always)",
+      "6. manual_approval_gate (production only, optional)",
+      "7. cloud_auth (only if deployment_target.auth_type == oidc or workload_identity)",
+      "8. deployment_target (per compatibility_matrix.tech_stack_to_recommended_deploy_target)",
+      "9. ssh_key_cleanup (only if deployment_target.cleanup_required == ssh_key_cleanup)",
+      "10. alerting (one or more)",
+      "11. automatic_rollback (conditional on deploy job failure)"
+    ]
+  }
+}

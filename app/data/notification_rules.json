@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0",
+  "notification_channels": [
+    {
+      "id": "notify.slack",
+      "name": "Slack",
+      "required_secrets": ["secret.slack_webhook_url"],
+      "trigger_events": ["on_start", "on_success", "on_failure"],
+      "stage_template_id": "stage.notify.slack.generic"
+    },
+    {
+      "id": "notify.email",
+      "name": "Email (SMTP)",
+      "required_secrets": ["secret.smtp_host", "secret.smtp_port", "secret.smtp_user", "secret.smtp_password"],
+      "trigger_events": ["on_failure"],
+      "stage_template_id": "stage.notify.email.generic"
+    },
+    {
+      "id": "notify.teams",
+      "name": "Microsoft Teams",
+      "required_secrets": ["secret.teams_webhook_url"],
+      "trigger_events": ["on_success", "on_failure"],
+      "stage_template_id": "stage.notify.teams.generic"
+    },
+    {
+      "id": "notify.discord",
+      "name": "Discord",
+      "required_secrets": ["secret.discord_webhook_url"],
+      "trigger_events": ["on_success", "on_failure"],
+      "stage_template_id": "stage.notify.discord.generic"
+    },
+    {
+      "id": "notify.google_chat",
+      "name": "Google Chat",
+      "required_secrets": ["secret.google_chat_webhook_url"],
+      "trigger_events": ["on_success", "on_failure"],
+      "stage_template_id": "stage.notify.google_chat.generic"
+    }
+  ]
+}

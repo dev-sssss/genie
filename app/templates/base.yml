@@ -1,0 +1,21 @@
+name: AI Generated Pipeline
+on:
+  push:
+    branches:
+      - ${DEFAULT_BRANCH}
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Runtime
+        run: echo "Setting up runtime for ${RUNTIME_LANGUAGE}"
+      - name: Install dependencies
+        run: |
+          ${INSTALL_COMMAND}
+      - name: Build and Test
+        run: |
+          ${BUILD_COMMAND}
+      - name: Deploy
+        run: |
+          ${DEPLOY_COMMAND}

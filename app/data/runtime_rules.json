@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0",
+  "runtimes": [
+    {
+      "id": "runtime.node",
+      "name": "Node.js",
+      "package_managers": ["npm", "yarn", "pnpm"],
+      "lockfile_signals": ["package-lock.json", "yarn.lock", "pnpm-lock.yaml"],
+      "default_version": "20.x",
+      "supported_versions": ["18.x", "20.x", "22.x"],
+      "setup_action_github_actions": "actions/setup-node@v4",
+      "setup_image_docker": "node:20-alpine"
+    },
+    {
+      "id": "runtime.python",
+      "name": "Python",
+      "package_managers": ["pip", "poetry", "pipenv"],
+      "lockfile_signals": ["requirements.txt", "poetry.lock", "Pipfile.lock"],
+      "default_version": "3.12",
+      "supported_versions": ["3.10", "3.11", "3.12"],
+      "setup_action_github_actions": "actions/setup-python@v5",
+      "setup_image_docker": "python:3.12-slim"
+    },
+    {
+      "id": "runtime.java",
+      "name": "Java",
+      "package_managers": ["maven", "gradle"],
+      "lockfile_signals": ["pom.xml", "build.gradle", "build.gradle.kts"],
+      "default_version": "21",
+      "supported_versions": ["17", "21"],
+      "setup_action_github_actions": "actions/setup-java@v4",
+      "setup_image_docker": "eclipse-temurin:21-jdk"
+    },
+    {
+      "id": "runtime.dotnet",
+      "name": ".NET",
+      "package_managers": ["nuget"],
+      "lockfile_signals": ["*.csproj", "*.sln", "packages.lock.json"],
+      "default_version": "8.0",
+      "supported_versions": ["6.0", "8.0"],
+      "setup_action_github_actions": "actions/setup-dotnet@v4",
+      "setup_image_docker": "mcr.microsoft.com/dotnet/sdk:8.0"
+    },
+    {
+      "id": "runtime.go",
+      "name": "Go",
+      "package_managers": ["go modules"],
+      "lockfile_signals": ["go.mod", "go.sum"],
+      "default_version": "1.22",
+      "supported_versions": ["1.21", "1.22"],
+      "setup_action_github_actions": "actions/setup-go@v5",
+      "setup_image_docker": "golang:1.22-alpine"
+    },
+    {
+      "id": "runtime.php",
+      "name": "PHP",
+      "package_managers": ["composer"],
+      "lockfile_signals": ["composer.json", "composer.lock"],
+      "default_version": "8.3",
+      "supported_versions": ["8.1", "8.2", "8.3"],
+      "setup_action_github_actions": "shivammathur/setup-php@v2",
+      "setup_image_docker": "php:8.3-fpm"
+    },
+    {
+      "id": "runtime.ruby",
+      "name": "Ruby",
+      "package_managers": ["bundler"],
+      "lockfile_signals": ["Gemfile", "Gemfile.lock"],
+      "default_version": "3.3",
+      "supported_versions": ["3.2", "3.3"],
+      "setup_action_github_actions": "ruby/setup-ruby@v1",
+      "setup_image_docker": "ruby:3.3-slim"
+    }
+  ]
+}

@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensetronix Software Services | AI-Genie</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent: #00d2ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-hover: rgba(255, 255, 255, 0.06);
+            --glass-border-hover: rgba(0, 210, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: auto;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        /* ─── TYPOGRAPHY ─── */
+        h1,
+        h2,
+        h3,
+        .brand {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ─── NAVBAR ─── */
+        nav {
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 32px);
+            max-width: 1100px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            z-index: 100;
+            border-radius: 100px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid var(--glass-border);
+        }
+
+        .nav-brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #fff;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-left: 24px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+        }
+
+        .global-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 99px;
+            cursor: pointer;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 24px;
+        }
+
+        .global-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 140px;
+            text-align: center;
+        }
+
+        .badge {
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            color: var(--accent);
+            padding: 8px 16px;
+            border-radius: 99px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.1);
+        }
+
+        .hero p {
+            max-width: 600px;
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin: 0px 0 40px;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            z-index: 10;
+            margin-bottom: 60px;
+        }
+
+        .btn-primary {
+            background: #ffffff;
+            color: #000000;
+            padding: 14px 28px;
+            border-radius: 99px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            padding: 14px 28px;
+            border-radius: 99px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+
+        /* ─── GLOWING PURPLE BUTTON ─── */
+        .glowing-btn {
+            --glow-color: rgb(217, 176, 255);
+            --glow-spread-color: rgba(191, 123, 255, 0.781);
+            --enhanced-glow-color: rgb(231, 206, 255);
+            --btn-color: rgb(100, 61, 136);
+            border: .25em solid var(--glow-color);
+            padding: 1em 3em;
+            color: var(--glow-color);
+            font-size: 15px;
+            font-weight: bold;
+            background-color: var(--btn-color);
+            border-radius: 1em;
+            outline: none;
+            box-shadow: 0 0 1em .25em var(--glow-color),
+                0 0 4em 1em var(--glow-spread-color),
+                inset 0 0 .75em .25em var(--glow-color);
+            text-shadow: 0 0 .5em var(--glow-color);
+            position: relative;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .glowing-btn::after {
+            pointer-events: none;
+            content: "";
+            position: absolute;
+            top: 120%;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background-color: var(--glow-spread-color);
+            filter: blur(2em);
+            opacity: .7;
+            transform: perspective(1.5em) rotateX(35deg) scale(1, .6);
+        }
+
+        .glowing-btn:hover {
+            color: var(--btn-color);
+            background-color: var(--glow-color);
+            box-shadow: 0 0 1em .25em var(--glow-color),
+                0 0 4em 2em var(--glow-spread-color),
+                inset 0 0 .75em .25em var(--glow-color);
+        }
+
+        .glowing-btn:active {
+            box-shadow: 0 0 0.6em .25em var(--glow-color),
+                0 0 2.5em 2em var(--glow-spread-color),
+                inset 0 0 .5em .25em var(--glow-color);
+        }
+
+        /* ─── TERMINAL MOCKUP ─── */
+        .mockup-container {
+            width: 90%;
+            max-width: 1000px;
+            height: 500px;
+            background: #09090b;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 120px;
+        }
+
+        .mockup-header {
+            height: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .mockup-body {
+            padding: 24px;
+            text-align: left;
+            font-family: 'Fira Code', monospace;
+            color: #a1a1aa;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .code-line {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .code-num {
+            color: #52525b;
+            user-select: none;
+        }
+
+        .code-kw {
+            color: #f472b6;
+        }
+
+        .code-str {
+            color: #34d399;
+        }
+
+        .code-fnc {
+            color: #60a5fa;
+        }
+
+
+        /* ─── FLIP CARD & GLARE EFFECT ─── */
+        .glare-hover {
+            position: relative;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+            min-height: 280px;
+            border-radius: 20px;
+            display: grid;
+        }
+
+        .glare-hover:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front,
+        .flip-card-back {
+            grid-area: 1 / 1;
+            width: 100%;
+            height: 100%;
+            border-radius: 20px;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .flip-card-back h3 {
+            color: #FFD700 !important;
+        }
+
+        .flip-card-back p {
+            color: #FFD700 !important;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+        }
+
+
+        .flip-card-front {
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: #010205;
+            border: 1px solid var(--glass-border);
+            position: relative;
+        }
+
+        .flip-card-front::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(1, 2, 5, 0.55);
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 20px;
+        }
+
+        .flip-card-front>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        .flip-card-front h3,
+        .flip-card-front p {
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 1);
+            color: #FFD700;
+        }
+
+        .flip-card-back {
+            background: rgba(255, 255, 255, 0.08);
+            /* glass effect from current cards */
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            transform: rotateY(180deg);
+            padding: 32px;
+        }
+
+        .flip-card-back h3 {
+            color: #FFD700 !important;
+        }
+
+        .flip-card-back p {
+            color: #FFD700 !important;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+        }
+
+
+        /* The user's requested glare effect applied to the back card */
+        .flip-card-back::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-20deg);
+            transition: left 0.6s ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .glare-hover:hover .flip-card-back::before {
+            left: 200%;
+            transition-delay: 0.3s;
+        }
+
+        /* ─── BENTO BOX FEATURES ─── */
+        .bento-section {
+            max-width: 1200px;
+            margin: 0 auto 120px;
+            padding: 0 5%;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 16px;
+            font-weight: 800;
+        }
+
+        .section-desc {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 60px;
+            font-size: 1.1rem;
+        }
+
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            auto-rows: minmax(300px, auto);
+        }
+
+        .bento-card {
+            background: rgba(1, 2, 5, 0.85);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .bento-card:hover {
+            border-color: var(--glass-border-hover);
+            background: rgba(1, 2, 5, 0.95);
+            box-shadow: 0 20px 40px rgba(0, 210, 255, 0.05);
+            transform: translateY(-4px);
+        }
+
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.4) 50%, rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-20deg);
+            transition: left 0.6s ease-in-out;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .bento-card:hover::before {
+            left: 200%;
+            transition-delay: 0.1s;
+        }
+
+        .bento-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 1);
+            position: relative;
+            z-index: 2;
+            color: #FFD700;
+        }
+
+        .bento-card p {
+            color: #FFD700;
+            line-height: 1.6;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.9), 0 1px 3px rgba(0, 0, 0, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .span-2 {
+            grid-column: span 2;
+        }
+
+        .icon-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: rgba(0, 210, 255, 0.1);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
+            color: var(--accent);
+        }
+
+        @media(max-width: 900px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .span-2 {
+                grid-column: span 1;
+            }
+
+            .hero h1 {
+                font-size: 3rem !important;
+            }
+
+            nav {
+                flex-direction: column;
+                border-radius: 20px;
+                gap: 12px;
+                padding: 16px;
+            }
+
+            .nav-links {
+                display: flex;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .nav-links a {
+                margin-left: 0;
+            }
+
+            .hero {
+                padding-top: 180px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+
+        /* ─── FOOTER ─── */
+        footer {
+            border-top: 1px solid var(--glass-border);
+            padding: 60px 24px;
+            text-align: center;
+        }
+
+        footer p {
+            color: #52525b;
+            font-size: 0.9rem;
+        }
+    </style>
+    <link rel="icon" href="/static/genie_logo.png" type="image/png">
+    <script src="/static/mesh-text.js"></script>
+</head>
+
+<body>
+    <nav>
+        <a href="/" class="nav-brand">Genie.SSS</a>
+        <div class="nav-links">
+            <a href="#features">Platform</a>
+            <a href="/chat">AI Sandbox</a>
+            <button class="global-btn" id="global-auth-btn" onclick="showAuthModal()"
+                style="border-color: rgba(0,210,255,0.3); color: #00d2ff; padding: 6px 12px; font-size: 0.85rem;">Sign
+                In / Sign Up</button>
+        </div>
+    </nav>
+
+    <section class="hero">
+
+        <div id="mesh-text-container"
+            style="width: 100%; height: 200px; max-width: 900px; user-select: none; z-index: 20;"></div>
+        <p style="font-size: 1.3rem; margin-top: 10px;">Generate production-grade CI/CD pipelines and Dockerfiles</p>
+        <div class="cta-buttons">
+            <a href="/pipeline" class="glowing-btn">Pipeline Genie <svg width="16" height="16" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg></a>
+            <a href="/docker" class="glowing-btn"
+                style="--btn-color: rgb(30, 41, 59); --glow-color: #94a3b8; --glow-spread-color: rgba(148, 163, 184, 0.4);">Docker Genie <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg></a>
+        </div>
+
+        <style>
+/* From Uiverse.io by prikshit_1236 */ 
+.pb-ai-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 500px;
+  margin: 60px auto 60px;
+  padding: 6px;
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba(166, 125, 255, 0.18) 0%,
+    rgba(122, 69, 255, 0.12) 100%
+  );
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 0 0 4px rgba(125, 71, 255, 0.08),
+    0 0 24px rgba(98, 43, 255, 0.14),
+    inset 0 0 6px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Gloss */
+.pb-ai-input-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(255, 255, 255, 0.04) 45%,
+    rgba(255, 255, 255, 0)
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Grain */
+.pb-ai-input-wrap::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: radial-gradient(
+      circle at bottom center,
+      rgba(255, 255, 255, 0.18) 0%,
+      rgba(255, 255, 255, 0.06) 20%,
+      transparent 60%
+    ),
+    radial-gradient(rgba(255, 255, 255, 0.1) 0.8px, transparent 0.8px);
+  background-size:
+    100% 100%,
+    5px 5px;
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.pb-ai-input {
+  position: relative;
+  z-index: 3;
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  padding: 0 16px;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 400;
+  font-family: inherit;
+}
+
+.pb-ai-input::placeholder {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.pb-ai-input-btn {
+  position: relative;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 12px 20px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(180deg, #a67dff 0%, #7a45ff 45%, #5d24ff 100%);
+  box-shadow:
+    0 0 0 3px rgba(125, 71, 255, 0.1),
+    0 5px 12px rgba(98, 43, 255, 0.2),
+    inset 0 2px 8px rgba(255, 255, 255, 0.16);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pb-ai-input-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 4px rgba(125, 71, 255, 0.12),
+    0 8px 16px rgba(98, 43, 255, 0.24),
+    inset 0 2px 8px rgba(255, 255, 255, 0.2);
+}
+
+.pb-ai-input-btn:active {
+  transform: scale(0.97);
+}
+
+.pb-ai-sparkle {
+  font-size: 14px;
+  transform: translateY(-1px);
+}
+        </style>
+        <div class="pb-ai-input-wrap">
+            <textarea id="landing-query" class="pb-ai-input" rows="1" placeholder="Ask Genie to orchestrate..."
+                onkeydown="if(event.key === 'Enter') { submitLandingQuery(); event.preventDefault(); }"></textarea>
+            <button class="pb-ai-input-btn" onclick="submitLandingQuery()">
+                <span>Send</span>
+                <span class="pb-ai-sparkle">✨</span>
+            </button>
+        </div>
+        <script>
+            function submitLandingQuery() {
+                const q = document.getElementById('landing-query').value.trim();
+                if (q) {
+                    localStorage.setItem('genie_initial_query', q);
+                    window.location.href = '/chat';
+                }
+            }
+        </script>
+
+        <div class="mockup-container">
+            <div class="mockup-header">
+                <div class="dot" style="background:#ef4444;"></div>
+                <div class="dot" style="background:#eab308;"></div>
+                <div class="dot" style="background:#22c55e;"></div>
+            </div>
+            <div class="mockup-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <!-- Before: Broken Jenkins -->
+                <div style="border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px;">
+                    <div style="margin-bottom: 15px; color: #ef4444; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">Before: Broken Jenkinsfile</div>
+                    <div class="code-line"><span><span class="code-kw">pipeline</span> {</span></div>
+                    <div class="code-line"><span>  <span class="code-kw">agent</span> any</span></div>
+                    <div class="code-line"><span>  <span class="code-kw">stages</span> {</span></div>
+                    <div class="code-line"><span>    <span class="code-kw">stage</span>(<span class="code-str">'Build'</span>) {</span></div>
+                    <div class="code-line"><span>      <span class="code-kw">steps</span> {</span></div>
+                    <div class="code-line"><span>        <span class="code-fnc">sh</span> <span class="code-str">'npm install --unsafe-perm'</span> <span style="color: #ef4444;">// Vulnerability</span></span></div>
+                    <div class="code-line"><span>        <span class="code-fnc">sh</span> <span class="code-str">'docker build -t app:latest .'</span></span></div>
+                    <div class="code-line"><span>      }</span></div>
+                    <div class="code-line"><span>    }</span></div>
+                    <div class="code-line"><span>  }</span></div>
+                    <div class="code-line"><span>}</span></div>
+                </div>
+                <!-- After: Secure Actions -->
+                <div>
+                    <div style="margin-bottom: 15px; color: #22c55e; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px;">After: Secure GitHub Actions</div>
+                    <div class="code-line"><span><span class="code-kw">name:</span> CI/CD Pipeline</span></div>
+                    <div class="code-line"><span><span class="code-kw">on:</span> [push]</span></div>
+                    <div class="code-line"><span><span class="code-kw">jobs:</span></span></div>
+                    <div class="code-line"><span>  <span class="code-kw">build:</span></span></div>
+                    <div class="code-line"><span>    <span class="code-kw">runs-on:</span> ubuntu-latest</span></div>
+                    <div class="code-line"><span>    <span class="code-kw">steps:</span></span></div>
+                    <div class="code-line"><span>      - <span class="code-kw">uses:</span> actions/checkout@v3</span></div>
+                    <div class="code-line"><span>      - <span class="code-kw">name:</span> Enforce OIDC & Clean Install</span></div>
+                    <div class="code-line"><span>        <span class="code-kw">run:</span> npm ci <span style="color: #22c55e;"># Secured</span></span></div>
+                    <div class="code-line"><span>      - <span class="code-kw">uses:</span> docker/build-push-action@v4</span></div>
+                    <div class="code-line"><span>        <span class="code-kw">with:</span></span></div>
+                    <div class="code-line"><span>          <span class="code-kw">push:</span> true</span></div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="bento-section" style="margin-top: 60px;">
+        <h2 class="section-title">Why DevOps Engineers Trust Genie</h2>
+        <p class="section-desc">We don't just generate generic pipelines. We reverse-engineer and repair.</p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 60px;">
+            <div class="bento-card" style="padding: 24px;">
+                <h3 style="font-size: 1.2rem; color: #ef4444; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">The Problem: Legacy Decay</h3>
+                <ul style="list-style: none; padding: 0; color: #a1a1aa; line-height: 1.8; margin-top: 15px;">
+                    <li style="margin-bottom: 10px;">❌ <strong>Broken/outdated pipelines</strong> that nobody wants to touch.</li>
+                    <li style="margin-bottom: 10px;">❌ <strong>Missing security gates</strong> and deprecated Docker/npm flags.</li>
+                    <li style="margin-bottom: 10px;">❌ <strong>Port mismatches</strong> between CI environments and reality.</li>
+                    <li style="margin-bottom: 10px;">❌ <strong>High-risk migrations</strong> (e.g., Jenkins → GitHub Actions).</li>
+                </ul>
+            </div>
+            <div class="bento-card" style="padding: 24px;">
+                <h3 style="font-size: 1.2rem; color: #00d2ff; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">The Solution: Phase-Gated AI</h3>
+                <ul style="list-style: none; padding: 0; color: #a1a1aa; line-height: 1.8; margin-top: 15px;">
+                    <li style="margin-bottom: 10px;">✅ <strong>Connects & Analyzes</strong> your exact repository configurations.</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Detects</strong> legacy pipeline footprint organically.</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Phase-Gated Rewrites</strong> enforcing OIDC and zero baked-in secrets.</li>
+                    <li style="margin-bottom: 10px;">✅ <strong>Produces Verifiable Diffs</strong> so you explicitly review code, not trust it blindly.</li>
+                </ul>
+            </div>
+        </div>
+
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap');
+
+            @keyframes morph-word-rotate {
+                0% { opacity: 0; filter: blur(20px); transform: translate(-50%, -50%) scale(0.8); }
+                1.5% { opacity: 0.5; filter: blur(10px); }
+                4%, 13% { opacity: 1; filter: blur(0px); transform: translate(-50%, -50%) scale(1); }
+                15% { opacity: 0.5; filter: blur(10px); }
+                16.66%, 100% { opacity: 0; filter: blur(20px); transform: translate(-50%, -50%) scale(1.2); }
+            }
+        </style>
+        <div class="morph-text-root" style="display: flex; flex-direction: column; align-items: center; position: relative; margin-bottom: 40px;">
+            <p class="morph-subtext" style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 20px; text-align: center;">NATIVE INTEGRATIONS FOR</p>
+            
+            <svg aria-hidden="true" focusable="false" style="position: absolute; width: 0; height: 0; pointer-events: none;">
+                <defs>
+                    <filter id="morph-threshold">
+                        <feColorMatrix in="SourceGraphic" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 25 -9" result="goo" />
+                        <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+                    </filter>
+                </defs>
+            </svg>
+            
+            <div class="morph-text-container" style="font-size: min(10vw, 3rem); font-weight: 700; color: #fff; filter: url(#morph-threshold); font-family: 'Space Grotesk', sans-serif; position: relative; user-select: none; width: 100%;">
+                <div class="morph-word-rotator" style="position: relative; display: flex; align-items: center; justify-content: center; height: 1.2em; min-width: 14ch;">
+                    <span class="morph-word" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; animation: morph-word-rotate 9s ease-in-out infinite both; animation-delay: 0s;">GitHub Actions</span>
+                    <span class="morph-word" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; animation: morph-word-rotate 9s ease-in-out infinite both; animation-delay: 1.5s;">Jenkins CI</span>
+                    <span class="morph-word" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; animation: morph-word-rotate 9s ease-in-out infinite both; animation-delay: 3s;">GitLab CI</span>
+                    <span class="morph-word" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; animation: morph-word-rotate 9s ease-in-out infinite both; animation-delay: 4.5s;">Docker</span>
+                    <span class="morph-word" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; animation: morph-word-rotate 9s ease-in-out infinite both; animation-delay: 6s;">Kubernetes</span>
+                    <span class="morph-word" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0; white-space: nowrap; animation: morph-word-rotate 9s ease-in-out infinite both; animation-delay: 7.5s;">AWS</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="bento-section">
+        <h2 class="section-title">A Unified <span class="gradient-text">Developer Engine</span></h2>
+        <p class="section-desc">Automate your entire operations lifecycle with specialized micro-agents.</p>
+
+        <div class="bento-grid">
+            <div class="glare-hover span-2" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 20px;">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front" style="background-image: url('/static/cicd_banner.png');"></div>
+                    <div class="flip-card-back">
+                        <div class="icon-wrap">⚡</div>
+                        <h3 style="color: #FFD700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);">Pipeline Genie</h3>
+                        <p>The core intelligence engine. Instantly analyzes any Git repository to generate
+                            flawlessly-architected GitHub Actions, GitLab CI, and Jenkins workflows. Complete with
+                            secure secret management injection and structural reliability checks.</p>
+                        <div style="margin-top: 20px;">
+                            <a href="/pipeline" class="global-btn"
+                                style="background: rgba(0,210,255,0.1); border: 1px solid rgba(0,210,255,0.4); color: #00d2ff; padding: 10px 20px; font-weight: 600; text-decoration: none; border-radius: 8px; margin-left: 0;">Launch
+                                Pipeline Genie</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glare-hover" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 20px;">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front" style="background-image: url('/static/docker_banner.png');"></div>
+                    <div class="flip-card-back">
+                        <div class="icon-wrap">🐳</div>
+                        <h3 style="color: #FFD700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);">Docker Genie</h3>
+                        <p>Generate highly-optimized, multi-stage Dockerfiles. Say goodbye to bloated Node.js and Python
+                            images. Enjoy instant security hardening and layer caching natively.</p>
+                        <div style="margin-top: 20px;">
+                            <a href="/docker" class="global-btn"
+                                style="background: rgba(0,210,255,0.1); border: 1px solid rgba(0,210,255,0.4); color: #00d2ff; padding: 10px 20px; font-weight: 600; text-decoration: none; border-radius: 8px; margin-left: 0;">Launch
+                                Docker Genie</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glare-hover" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 20px;">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front" style="background-image: url('/static/terra_banner.png');"></div>
+                    <div class="flip-card-back">
+                        <div class="icon-wrap">☁️</div>
+                        <h3 style="color: #FFD700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);">Terraform
+                            Infrastructure</h3>
+                        <p>Automate your entire cloud architecture with intelligent, AI-generated Terraform templates.
+                            Instantly provision and scale robust environments across AWS, GCP, and Azure. Establish
+                            declarative infrastructure-as-code securely without the heavy lifting.</p>
+                        <div style="margin-top: 20px;">
+                            <a href="/terra" class="global-btn"
+                                style="background: rgba(0,210,255,0.1); border: 1px solid rgba(0,210,255,0.4); color: #00d2ff; padding: 10px 20px; font-weight: 600; text-decoration: none; border-radius: 8px; margin-left: 0;">Launch
+                                Terra Genie</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glare-hover span-2" style="box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 20px;">
+                <div class="flip-card-inner">
+                    <div class="flip-card-front" style="background-image: url('/static/helm_banner.png');"></div>
+                    <div class="flip-card-back">
+                        <div class="icon-wrap">☸️</div>
+                        <h3 style="color: #FFD700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);">Kubernetes Helm Charts
+                        </h3>
+                        <p>Looking towards the future, our AI will automatically orchestrate and scope your scalable
+                            microservices using production-ready Kubernetes Helm charts. Say goodbye to manual cluster
+                            configurations and gracefully handle auto-scaling, load balancing, and zero-downtime rolling
+                            deployments effortlessly.</p>
+                        <div style="margin-top: 20px;">
+                            <a href="/helm" class="global-btn"
+                                style="background: rgba(0,210,255,0.1); border: 1px solid rgba(0,210,255,0.4); color: #00d2ff; padding: 10px 20px; font-weight: 600; text-decoration: none; border-radius: 8px; margin-left: 0;">Launch
+                                Helm Genie</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <h2 class="brand">Genie.SSS</h2>
+        <p style="margin-top:10px; color: #a1a1aa;">A DevOps Product by Sensetronix Software Services</p>
+        <p style="margin-top:20px;">&copy; 2026 Sensetronix. Engineered for the future.</p>
+    </footer>
+
+    <!-- Auth System -->
+
+    <script>
+        document.body.insertAdjacentHTML('beforeend', `
+<style>
+/* From Uiverse.io by shadyeljokers */ 
+.auth-neon-container {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0, 238, 255, 0.25), inset 0 0 30px rgba(0, 0, 0, 0.9);
+  background: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-neon-container span {
+  position: absolute;
+  left: 0;
+  width: 32px;
+  height: 6px;
+  background: #2c4766;
+  border-radius: 80px;
+  transform-origin: 220px;
+  transform: rotate(calc(var(--i) * (360deg / 50)));
+  animation: neonBlink 3s linear infinite;
+  animation-delay: calc(var(--i) * (3s / 50));
+}
+
+@keyframes neonBlink {
+  0% {
+    background: #0ef;
+    box-shadow: 0 0 10px #0ef;
+  }
+  25% {
+    background: #2c4766;
+    box-shadow: none;
+  }
+}
+
+.neon-login-box {
+  position: absolute;
+  width: 85%;
+  max-width: 320px;
+  z-index: 10;
+  padding: 10px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.neon-login-box h2 {
+  font-size: 1.6em;
+  color: #0ef;
+  text-align: center;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 238, 255, 0.5);
+}
+
+.neon-input-box {
+  position: relative;
+  margin: 14px 0;
+  text-align: left;
+}
+
+.neon-input-box input {
+  width: 100%;
+  height: 44px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px solid #2c4766;
+  outline: none;
+  border-radius: 40px;
+  font-size: 0.95em;
+  color: #fff;
+  padding: 0 18px;
+  transition: 0.3s ease;
+  box-sizing: border-box;
+}
+
+.neon-input-box input:focus {
+  border-color: #0ef;
+  box-shadow: 0 0 12px rgba(0, 238, 255, 0.3);
+}
+
+.neon-input-box input:not(:placeholder-shown) ~ label,
+.neon-input-box input:focus ~ label {
+  top: -9px;
+  font-size: 0.75em;
+  background: #111827;
+  padding: 0 8px;
+  color: #0ef;
+  border-radius: 4px;
+}
+
+.neon-input-box label {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  font-size: 0.85em;
+  pointer-events: none;
+  transition: 0.3s ease;
+  color: #94a3b8;
+}
+
+.neon-btn {
+  width: 100%;
+  height: 42px;
+  background: #0ef;
+  border: none;
+  outline: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-size: 0.95em;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+  box-shadow: 0 0 15px rgba(0, 238, 255, 0.4);
+}
+
+.neon-btn:hover {
+  background: #38bdf8;
+  box-shadow: 0 0 25px rgba(0, 238, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.neon-signup-link {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.82em;
+  color: #94a3b8;
+}
+
+.neon-signup-link a {
+  color: #0ef;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.neon-signup-link a:hover {
+  text-decoration: underline;
+}
+
+.neon-cancel-link {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.neon-cancel-link a {
+  font-size: 0.75em;
+  color: #64748b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.neon-cancel-link a:hover {
+  color: #94a3b8;
+}
+</style>
+        <div id="auth-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div class="auth-neon-container" id="auth-neon-circle">
+            <div class="neon-login-box">
+              <h2 id="auth-form-title">LOGIN</h2>
+              <div id="auth-main-form">
+                <div class="neon-input-box">
+                  <input type="email" id="auth-email" placeholder=" " required autocomplete="off">
+                  <label>Email</label>
+                </div>
+                
+                <div class="neon-input-box" id="auth-password-group">
+                  <input type="password" id="auth-pass" placeholder=" " required autocomplete="off">
+                  <label>Password</label>
+                </div>
+
+                <div class="neon-input-box" id="auth-otp-group" style="display: none;">
+                  <input type="text" id="auth-otp" placeholder=" " maxlength="6" style="letter-spacing: 6px; font-weight:800; text-align:center;">
+                  <label>6-Digit OTP</label>
+                </div>
+                
+                <p id="auth-err" style="color:#ef4444; font-size:0.75rem; min-height:18px; text-align:center; margin:2px 0;"></p>
+                
+                <button class="neon-btn" id="auth-submit-btn" onclick="submitAuth('login')">
+                  Authorize
+                </button>
+
+                <div class="neon-signup-link" id="auth-signup-text">
+                  New developer? <a onclick="submitAuth('signup')">Sign Up</a>
+                </div>
+                
+                <div class="neon-cancel-link">
+                  <a onclick="document.getElementById('auth-overlay').style.display='none'">Cancel</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div style="background: rgba(13, 14, 24, 0.95); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; width: 90%; max-width: 420px; padding: 2.2rem; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2), inset 0 1px 1px rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem; position: relative;">
+            
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.05) 70%); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </div>
+
+            <div>
+              <h3 style="font-size: 1.35rem; font-weight: 700; color: #fff; margin: 0 0 0.4rem; letter-spacing: -0.5px;">Terminate Session</h3>
+              <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin: 0;">Are you sure you want to disconnect and log out of your account?</p>
+            </div>
+
+            <div id="logout-user-badge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; color: #cbd5e1; font-family: monospace;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
+              <span id="logout-user-email">Active User</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; width: 100%; margin-top: 0.5rem;">
+              <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                Stay Signed In
+              </button>
+              <button onclick="confirmLogout()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #ffffff; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35); transition: all 0.2s;">
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>`);
+
+        // Initialize neon particle spans
+        (function(){
+            const container = document.getElementById('auth-neon-circle');
+            if (container) {
+                for(let i = 0; i < 50; i++) {
+                    const span = document.createElement('span');
+                    span.style.setProperty('--i', i);
+                    container.appendChild(span);
+                }
+            }
+        })();
+
+        function showAuthModal() {
+            if (localStorage.getItem("genie_auth_token")) {
+                showLogoutModal();
+                return;
+            }
+            if (typeof resetAuthModal === 'function') resetAuthModal();
+            document.getElementById('auth-overlay').style.display = 'flex';
+        }
+
+        function showLogoutModal() {
+            const email = localStorage.getItem("genie_user_email") || "Active User";
+            const emailEl = document.getElementById('logout-user-email');
+            if (emailEl) emailEl.innerText = email;
+            const modal = document.getElementById('logout-overlay');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-overlay');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function confirmLogout() {
+            localStorage.removeItem("genie_auth_token");
+            localStorage.removeItem("genie_user_email");
+            closeLogoutModal();
+            const btn = document.getElementById('global-auth-btn');
+            if (btn) btn.innerText = "Sign In / Sign Up";
+        }
+
+        async function submitAuth(mode) {
+            const email = document.getElementById('auth-email').value;
+            const pass = document.getElementById('auth-pass').value;
+            const err = document.getElementById('auth-err');
+            if (!email || !pass) { err.style.color = "#ef4444"; err.innerText = "Credentials required."; return; }
+
+            err.style.color = "#38bdf8";
+            err.innerText = "Authenticating...";
+            try {
+                let res = await fetch(`/api/auth/${mode}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: pass })
+                });
+
+                // If logging in and user does not exist, automatically transition to Signup OTP verification
+                if (res.status === 404 && mode === 'login') {
+                    res = await fetch(`/api/auth/signup`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email, password: pass })
+                    });
+                }
+
+                const data = await res.json();
+                if (res.ok && data.access_token) {
+                    // Direct login for existing users - bypass OTP
+                    localStorage.setItem("genie_auth_token", data.access_token);
+                    localStorage.setItem("genie_user_email", email);
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    resetAuthModal();
+
+                    const btn = document.getElementById('global-auth-btn');
+                    if (btn) btn.innerText = email.split('@')[0];
+                } else if (res.ok) {
+                    // New user signup - require OTP verification
+                    err.style.color = "#a78bfa";
+                    err.innerText = data.detail || "OTP Required. Check your Email.";
+
+                    document.getElementById('auth-password-group').style.display = 'none';
+                    document.getElementById('auth-signup-text').style.display = 'none';
+                    document.getElementById('auth-otp-group').style.display = 'block';
+                    document.getElementById('auth-form-title').innerText = 'VERIFY OTP';
+
+                    const btn = document.getElementById('auth-submit-btn');
+                    btn.innerHTML = 'Validate Code';
+                    btn.onclick = () => submitOtp(email);
+
+                } else {
+                    err.style.color = "#ef4444";
+                    err.innerText = data.detail || data.message || "Authentication Failed.";
+                }
+            } catch (e) {
+                err.style.color = "#ef4444";
+                err.innerText = "Network execution aborted.";
+            }
+        }
+
+        async function submitOtp(email) {
+            const code = document.getElementById('auth-otp').value;
+            const err = document.getElementById('auth-err');
+            if (!code) { err.style.color = "#ef4444"; err.innerText = "Code required."; return; }
+
+            err.style.color = "#38bdf8";
+            err.innerText = "Verifying Code...";
+            try {
+                const res = await fetch(`/api/auth/verify-otp`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, code: code })
+                });
+                const data = await res.json();
+                if (res.ok && data.access_token) {
+                    localStorage.setItem("genie_auth_token", data.access_token);
+                    document.getElementById('auth-overlay').style.display = 'none';
+                    resetAuthModal();
+
+                    const btn = document.getElementById('global-auth-btn');
+                    if (btn) btn.innerText = email;
+                } else {
+                    err.style.color = "#ef4444";
+                    err.innerText = data.detail || "Validation Failed.";
+                }
+            } catch (e) {
+                err.style.color = "#ef4444";
+                err.innerText = "Network execution aborted.";
+            }
+        }
+
+        function resetAuthModal() {
+            document.getElementById('auth-password-group').style.display = 'block';
+            document.getElementById('auth-otp-group').style.display = 'none';
+            document.getElementById('auth-signup-text').style.display = 'block';
+            document.getElementById('auth-err').innerText = '';
+            document.getElementById('auth-pass').value = '';
+            document.getElementById('auth-otp').value = '';
+            document.getElementById('auth-form-title').innerText = 'LOGIN';
+
+            const btn = document.getElementById('auth-submit-btn');
+            btn.innerHTML = 'Authorize';
+            btn.onclick = () => submitAuth('login');
+        }
+
+        window.onload = () => {
+            const token = localStorage.getItem("genie_auth_token");
+            if (token) {
+                const btn = document.getElementById('global-auth-btn');
+                if (btn) {
+                    try {
+                        const payload = JSON.parse(atob(token.split('.')[1]));
+                        if (payload && payload.sub) {
+                            btn.innerText = payload.sub;
+                        }
+                    } catch (e) { }
+                }
+            }
+        };
+        // Kinetic Grid
+        document.addEventListener("DOMContentLoaded", () => {
+            const background = "#000000";
+            const dotColor = "#FFFFFF";
+            const lineColor = "#80ACFF";
+            const trailColor = "#2664EB";
+            const spacing = 30;
+            const radius = 400;
+            const strength = 4;
+            const trail = true;
+
+            const host = document.createElement("div");
+            host.style.position = "fixed";
+            host.style.top = "0";
+            host.style.left = "0";
+            host.style.width = "100vw";
+            host.style.height = "100vh";
+            host.style.zIndex = "-2";
+            host.style.overflow = "hidden";
+            host.style.background = background;
+            document.body.appendChild(host);
+
+            const canvas = document.createElement("canvas");
+            canvas.style.position = "absolute";
+            canvas.style.inset = "0";
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+            canvas.style.pointerEvents = "none";
+            canvas.style.opacity = "0.75";
+            host.appendChild(canvas);
+
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            const mouse = { x: -9999, y: -9999, active: false };
+            const trailArr = [];
+
+            const GAP = Math.max(8, spacing);
+            const R = Math.max(1, radius);
+            const PULL = (Math.max(1, Math.min(10, strength)) / 10) * 4;
+
+            let W = 1, H = 1;
+            let cols = [], dots = [];
+
+            const build = () => {
+                const r = host.getBoundingClientRect();
+                W = Math.max(1, Math.floor(r.width));
+                H = Math.max(1, Math.floor(r.height));
+                const dpr = window.devicePixelRatio || 1;
+
+                canvas.width = Math.floor(W * dpr);
+                canvas.height = Math.floor(H * dpr);
+                canvas.style.width = W + "px";
+                canvas.style.height = H + "px";
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                cols = [];
+                dots = [];
+                const nCols = Math.floor(W / GAP) + 2;
+                const nRows = Math.floor(H / GAP) + 2;
+                for (let c = 0; c < nCols; c++) {
+                    const col = [];
+                    for (let rIdx = 0; rIdx < nRows; rIdx++) {
+                        const hx = c * GAP;
+                        const hy = rIdx * GAP;
+                        const d = { hx, hy, x: hx, y: hy, vx: 0, vy: 0 };
+                        col.push(d);
+                        dots.push(d);
+                    }
+                    cols.push(col);
+                }
+            };
+            build();
+            window.addEventListener("resize", build);
+
+            const setMouse = (clientX, clientY) => {
+                const r = canvas.getBoundingClientRect();
+                const mx = clientX - r.left;
+                const my = clientY - r.top;
+                mouse.x = mx;
+                mouse.y = my;
+                mouse.active = true;
+
+                const now = performance.now();
+                trailArr.push({ x: mx, y: my, t: now });
+                if (trailArr.length > 80) trailArr.shift();
+            };
+
+            document.addEventListener("mousemove", (e) => setMouse(e.clientX, e.clientY));
+            document.addEventListener("mouseleave", () => { mouse.active = false; mouse.x = -9999; mouse.y = -9999; });
+
+            const frame = () => {
+                ctx.clearRect(0, 0, W, H);
+
+                for (let d of dots) {
+                    let ax = (d.hx - d.x) * 0.08, ay = (d.hy - d.y) * 0.08;
+                    if (mouse.active) {
+                        let dx = mouse.x - d.x, dy = mouse.y - d.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < R && dist > 0.001) {
+                            let f = (1 - dist / R) * PULL;
+                            ax += (dx / dist) * f; ay += (dy / dist) * f;
+                        }
+                    }
+                    d.vx = (d.vx + ax) * 0.82; d.vy = (d.vy + ay) * 0.82;
+                    d.x += d.vx; d.y += d.vy;
+                }
+
+                for (let c = 0; c < cols.length; c++) {
+                    for (let rIdx = 0; rIdx < cols[c].length; rIdx++) {
+                        const d = cols[c][rIdx];
+                        const right = cols[c + 1]?.[rIdx];
+                        const down = cols[c]?.[rIdx + 1];
+                        const prox = mouse.active ? Math.max(0, 1 - Math.sqrt((mouse.x - d.x) ** 2 + (mouse.y - d.y) ** 2) / R) : 0;
+
+                        if (right) {
+                            ctx.globalAlpha = 0.06 + prox * 0.7; ctx.strokeStyle = lineColor; ctx.lineWidth = 0.5 + prox * 1.5;
+                            ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(right.x, right.y); ctx.stroke();
+                        }
+                        if (down) {
+                            ctx.globalAlpha = 0.06 + prox * 0.7; ctx.strokeStyle = lineColor; ctx.lineWidth = 0.5 + prox * 1.5;
+                            ctx.beginPath(); ctx.moveTo(d.x, d.y); ctx.lineTo(down.x, down.y); ctx.stroke();
+                        }
+                    }
+                }
+
+                for (const d of dots) {
+                    const prox = mouse.active ? Math.max(0, 1 - Math.sqrt((mouse.x - d.x) ** 2 + (mouse.y - d.y) ** 2) / R) : 0;
+                    ctx.globalAlpha = 0.22 + prox * 0.78; ctx.fillStyle = dotColor;
+                    ctx.beginPath(); ctx.arc(d.x, d.y, 0.8 + prox * 2.2, 0, 2 * Math.PI); ctx.fill();
+                }
+
+                if (trail) {
+                    const now = performance.now();
+                    ctx.lineCap = "round"; ctx.lineJoin = "round";
+                    for (let i = 1; i < trailArr.length; i++) {
+                        const a = trailArr[i - 1], b = trailArr[i];
+                        const age = now - b.t;
+                        if (age > 260) continue;
+                        ctx.globalAlpha = Math.max(0, 1 - age / 260) * 0.85; ctx.strokeStyle = trailColor; ctx.lineWidth = 2;
+                        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+                    }
+                }
+
+                ctx.globalAlpha = 1;
+                requestAnimationFrame(frame);
+            };
+            requestAnimationFrame(frame);
+
+            // Initialize the WebGL Mesh Text Hover Effect for Hero heading
+            new MeshText(document.getElementById('mesh-text-container'), {
+                text: "GENIE.SSS\\nDEVOPS PLATFORM",
+                color: "#03ECFA",
+                fontFamily: "Outfit",
+                fontWeight: 900,
+                fontSize: window.innerWidth < 768 ? 42 : 80
+            });
+        });
+    </script>
+</body>
+
+</html>

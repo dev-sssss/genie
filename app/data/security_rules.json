@@ -1,0 +1,109 @@
+{
+  "schema_version": "1.0",
+  "security_tools": [
+    {
+      "id": "security.codeql",
+      "name": "CodeQL",
+      "category": "sast",
+      "supported_languages": ["javascript", "typescript", "python", "java", "go", "csharp"],
+      "native_to_tools": ["tool.github_actions"],
+      "integration_type": "github_action",
+      "stage_template_id": "stage.security.codeql.github_actions"
+    },
+    {
+      "id": "security.sonarqube",
+      "name": "SonarQube",
+      "category": "sast",
+      "supported_languages": ["javascript", "typescript", "python", "java", "csharp", "php"],
+      "native_to_tools": [],
+      "integration_type": "cli_or_action",
+      "requires_secrets": ["secret.sonar_token", "secret.sonar_host_url"],
+      "stage_template_id": "stage.security.sonarqube.generic"
+    },
+    {
+      "id": "security.semgrep",
+      "name": "Semgrep",
+      "category": "sast",
+      "supported_languages": ["javascript", "typescript", "python", "java", "go", "ruby"],
+      "native_to_tools": [],
+      "integration_type": "cli_or_action",
+      "stage_template_id": "stage.security.semgrep.generic"
+    },
+    {
+      "id": "security.trivy",
+      "name": "Trivy",
+      "category": "container_scan",
+      "requires_components": ["deploy.docker"],
+      "integration_type": "cli_or_action",
+      "stage_template_id": "stage.security.trivy.generic"
+    },
+    {
+      "id": "security.grype",
+      "name": "Grype",
+      "category": "container_scan",
+      "requires_components": ["deploy.docker"],
+      "integration_type": "cli",
+      "stage_template_id": "stage.security.grype.generic"
+    },
+    {
+      "id": "security.npm_audit",
+      "name": "npm audit",
+      "category": "dependency_scan",
+      "requires_components": [],
+      "runtime": "runtime.node",
+      "integration_type": "cli",
+      "stage_template_id": "stage.security.npm_audit.generic"
+    },
+    {
+      "id": "security.pip_audit",
+      "name": "pip-audit",
+      "category": "dependency_scan",
+      "requires_components": [],
+      "runtime": "runtime.python",
+      "integration_type": "cli",
+      "stage_template_id": "stage.security.pip_audit.generic"
+    },
+    {
+      "id": "security.snyk",
+      "name": "Snyk",
+      "category": "dependency_scan",
+      "requires_secrets": ["secret.snyk_token"],
+      "integration_type": "cli_or_action",
+      "stage_template_id": "stage.security.snyk.generic"
+    },
+    {
+      "id": "security.gitleaks",
+      "name": "Gitleaks",
+      "category": "secret_scan",
+      "requires_components": [],
+      "integration_type": "cli_or_action",
+      "stage_template_id": "stage.security.gitleaks.generic"
+    },
+    {
+      "id": "security.trufflehog",
+      "name": "TruffleHog",
+      "category": "secret_scan",
+      "requires_components": [],
+      "integration_type": "cli_or_action",
+      "stage_template_id": "stage.security.trufflehog.generic"
+    },
+    {
+      "id": "security.checkov",
+      "name": "Checkov",
+      "category": "iac_scan",
+      "requires_components": [],
+      "applies_to_files": ["*.tf", "*.yaml (k8s manifests)", "Dockerfile"],
+      "integration_type": "cli_or_action",
+      "stage_template_id": "stage.security.checkov.generic"
+    },
+    {
+      "id": "security.tfsec",
+      "name": "tfsec",
+      "category": "iac_scan",
+      "requires_components": [],
+      "applies_to_files": ["*.tf"],
+      "integration_type": "cli_or_action",
+      "stage_template_id": "stage.security.tfsec.generic"
+    }
+  ]
+}

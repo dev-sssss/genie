@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0",
+  "tools": [
+    {
+      "id": "tool.github_actions",
+      "name": "GitHub Actions",
+      "config_path": ".github/workflows/",
+      "config_format": "yaml",
+      "syntax_dialect": "github_actions_yaml",
+      "secret_reference_syntax": "${{ secrets.NAME }}",
+      "supports_matrix_builds": true,
+      "supports_reusable_workflows": true
+    },
+    {
+      "id": "tool.jenkins",
+      "name": "Jenkins",
+      "config_path": "Jenkinsfile",
+      "config_format": "groovy",
+      "syntax_dialect": "jenkins_declarative",
+      "secret_reference_syntax": "credentials('NAME')",
+      "supports_matrix_builds": true,
+      "supports_reusable_workflows": false,
+      "notes": "Reusable logic done via shared libraries, not native 'reusable workflow' concept."
+    },
+    {
+      "id": "tool.gitlab_ci",
+      "name": "GitLab CI",
+      "config_path": ".gitlab-ci.yml",
+      "config_format": "yaml",
+      "syntax_dialect": "gitlab_ci_yaml",
+      "secret_reference_syntax": "$NAME",
+      "supports_matrix_builds": true,
+      "supports_reusable_workflows": true,
+      "notes": "Reusable via 'include:' + templates."
+    },
+    {
+      "id": "tool.azure_devops",
+      "name": "Azure DevOps Pipelines",
+      "config_path": "azure-pipelines.yml",
+      "config_format": "yaml",
+      "syntax_dialect": "azure_pipelines_yaml",
+      "secret_reference_syntax": "$(NAME)",
+      "supports_matrix_builds": true,
+      "supports_reusable_workflows": true,
+      "notes": "Reusable via templates: keyword."
+    },
+    {
+      "id": "tool.circleci",
+      "name": "CircleCI",
+      "config_path": ".circleci/config.yml",
+      "config_format": "yaml",
+      "syntax_dialect": "circleci_yaml",
+      "secret_reference_syntax": "$NAME (context or project env var)",
+      "supports_matrix_builds": true,
+      "supports_reusable_workflows": true,
+      "notes": "Reusable via 'orbs'."
+    },
+    {
+      "id": "tool.bitbucket_pipelines",
+      "name": "Bitbucket Pipelines",
+      "config_path": "bitbucket-pipelines.yml",
+      "config_format": "yaml",
+      "syntax_dialect": "bitbucket_pipelines_yaml",
+      "secret_reference_syntax": "$NAME (repository variable)",
+      "supports_matrix_builds": false,
+      "supports_reusable_workflows": false,
+      "notes": "No native matrix builds; simulate with parallel step definitions."
+    }
+  ]
+}

@@ -1,0 +1,1991 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PipelineGenie - Spatial Chat</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --accent-blue: #4facfe;
+            --accent-purple: #a18cd1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: url('/static/chat_bg.png') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-primary);
+            overflow: hidden;
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 11, 20, 0.75);
+            z-index: -1;
+        }
+
+        /* ─── DYNAMIC BACKGROUND ─── */
+        .ambient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: #050b14;
+            perspective: 1000px;
+        }
+
+        .ambient-shape {
+            position: absolute;
+            filter: blur(100px);
+            opacity: 0.5;
+            animation: float 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+        }
+
+        .shape-1 {
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(79,172,254,0.4) 0%, transparent 70%);
+            top: -20%;
+            left: -10%;
+            animation-delay: 0s;
+        }
+
+        .shape-2 {
+            width: 900px;
+            height: 900px;
+            background: radial-gradient(circle, rgba(161,140,209,0.3) 0%, transparent 70%);
+            bottom: -30%;
+            right: -10%;
+            animation-delay: -5s;
+        }
+
+        .shape-3 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(56,239,125,0.2) 0%, transparent 70%);
+            top: 30%;
+            left: 40%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); }
+            50% { transform: translate(100px, -100px) scale(1.2) rotate(45deg); }
+            100% { transform: translate(-50px, 80px) scale(0.9) rotate(-30deg); }
+        }
+
+        /* ─── NAVBAR ─── */
+        nav {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 95%;
+            max-width: 1400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 30px;
+            z-index: 100;
+            border-radius: 50px;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-brand {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: 1px;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .s-yellow { color: #f59e0b; }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover { color: #fff; }
+
+        /* ─── SPATIAL CHAT LAYOUT ─── */
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            margin: 0;
+            width: 100%;
+            max-width: 100%;
+            height: 100vh;
+            gap: 0;
+            z-index: 10;
+            background: transparent;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 300px;
+            background: rgba(10, 15, 30, 0.4);
+            backdrop-filter: blur(25px) saturate(200%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            height: 100vh;
+            flex-shrink: 0;
+        }
+
+        .new-chat-btn {
+            background: linear-gradient(135deg, rgba(79,172,254,0.2) 0%, rgba(161,140,209,0.2) 100%);
+            border: 1px solid rgba(161,140,209,0.4);
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .new-chat-btn:hover {
+            background: linear-gradient(135deg, rgba(79,172,254,0.4) 0%, rgba(161,140,209,0.4) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(161,140,209,0.3);
+        }
+
+        .history-list {
+            margin-top: 20px;
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            padding: 12px 15px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.3);
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+
+        .delete-btn:hover {
+            color: #ff4d4d;
+            background: rgba(255, 77, 77, 0.1);
+        }
+
+        .history-item:hover, .history-item.active {
+            background: rgba(255,255,255,0.06);
+            color: #fff;
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        /* MAIN CHAT AREA */
+        .main-chat {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-messages {
+            flex-grow: 1;
+            padding: 40px 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            align-items: center;
+        }
+
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .message {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            max-width: 850px;
+            animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
+            align-items: flex-start;
+        }
+
+        .message.ai {
+            justify-content: flex-start;
+        }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            justify-content: flex-start;
+            flex-direction: row-reverse;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .message.user .avatar {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, #00d4ff 100%);
+            color: #000;
+        }
+
+        .message.ai .avatar {
+            background: linear-gradient(135deg, var(--accent-purple) 0%, #fbc2eb 100%);
+            color: #000;
+        }
+
+        .bubble {
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            position: relative;
+            max-width: 85%;
+        }
+
+        .message.user .bubble {
+            background: rgba(79, 172, 254, 0.1);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        .message.ai .bubble {
+            background: transparent;
+            border: none;
+        }
+
+        .bubble pre {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 10px 0;
+            font-family: 'Fira Code', monospace;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .bubble code {
+            font-family: 'Fira Code', monospace;
+            color: var(--accent-blue);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.88em;
+        }
+
+        .bubble pre code {
+            background: transparent;
+            padding: 0;
+            border-radius: 0;
+            color: inherit;
+        }
+
+        .bubble h1, .bubble h2, .bubble h3, .bubble h4 {
+            margin: 14px 0 6px 0;
+            color: #ffffff;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+
+        .bubble h1 { font-size: 1.3rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        .bubble h2 { font-size: 1.15rem; color: #38bdf8; }
+        .bubble h3 { font-size: 1.05rem; color: #a78bfa; }
+        .bubble h4 { font-size: 0.95rem; color: #e2e8f0; }
+
+        .bubble ul, .bubble ol {
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        /* ─── Polished Markdown Table Styles ─── */
+        .chat-table-wrap {
+            margin: 1rem 0;
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(10, 15, 30, 0.6);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .chat-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+            text-align: left;
+            font-family: 'Inter', -apple-system, sans-serif;
+        }
+
+        .chat-table thead {
+            background: rgba(56, 189, 248, 0.12);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .chat-table th {
+            padding: 10px 14px;
+            color: #38bdf8;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.76rem;
+            letter-spacing: 0.05em;
+        }
+
+        .chat-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            color: #e2e8f0;
+            line-height: 1.5;
+        }
+
+        .chat-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .chat-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .bubble li {
+            margin: 4px 0;
+            line-height: 1.5;
+        }
+
+        .bubble strong {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .bubble p {
+            margin: 6px 0;
+        }
+
+        /* INPUT AREA */
+        .input-container {
+            padding: 24px;
+            background: transparent;
+            border-top: none;
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-box {
+            position: relative;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 6px;
+            display: flex;
+            align-items: flex-end;
+            backdrop-filter: blur(20px) saturate(180%);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 850px;
+        }
+
+        .input-box:focus-within {
+            border-color: rgba(161,140,209,0.5);
+            box-shadow: 0 0 20px rgba(161,140,209,0.2);
+        }
+
+        textarea {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            resize: none;
+            padding: 15px 20px;
+            outline: none;
+            max-height: 200px;
+            line-height: 1.5;
+        }
+
+        textarea::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 8px 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(161,140,209,0.6);
+        }
+        
+        .send-btn:disabled {
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.3);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 5px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+            width: 300px;
+            background: rgba(10, 15, 30, 0.4);
+            backdrop-filter: blur(25px) saturate(200%);
+            -webkit-backdrop-filter: blur(25px) saturate(200%);
+            border-right: 1px solid rgba(255,255,255,0.08);
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            height: 100vh;
+            flex-shrink: 0;
+        }
+            .chat-container {
+            flex-grow: 1;
+            display: flex;
+            margin: 0;
+            width: 100%;
+            max-width: 100%;
+            height: 100vh;
+            gap: 0;
+            z-index: 10;
+            background: transparent;
+        }
+            .main-chat {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+            nav { width: 100%; border-radius: 0; top: 0; border-top: none; border-left: none; border-right: none;}
+        }
+
+    
+        /* ─── 3D LAMP TOGGLE (User Provided) ─── */
+        .lamp-toggle-container {
+          display: flex; flex-direction: column; align-items: center; position: relative;
+          cursor: pointer; user-select: none; perspective: 1000px;
+          transform: scale(0.35); transform-origin: left center;
+          width: 50px; height: 60px;
+          margin-left: 20px;
+        }
+
+        .lamp-toggle-container input { position: absolute; opacity: 0; }
+
+        .lamp-block {
+          position: relative; width: 100px; height: 100px;
+          transform-style: preserve-3d;
+          transform: rotateX(-30deg) rotateY(45deg);
+          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .face {
+          position: absolute; width: 100px; height: 100px; display: grid;
+          grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(4, 1fr);
+          border: 5px solid #281910; box-sizing: border-box; background: #281910;
+        }
+
+        .face div {
+          width: 100%; height: 100%; background-color: #4f3122; border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        .top { transform: rotateX(90deg) translateZ(50px); }
+        .bottom { transform: rotateX(-90deg) translateZ(50px); }
+        .front { transform: rotateY(0deg) translateZ(50px); }
+        .back { transform: rotateY(180deg) translateZ(50px); }
+        .left { transform: rotateY(-90deg) translateZ(50px); }
+        .right { transform: rotateY(90deg) translateZ(50px); }
+
+        .face div:nth-child(3n) { filter: brightness(110%); }
+        .face div:nth-child(7n) { filter: brightness(80%); }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face {
+          border-color: #5b3a24;
+          filter: drop-shadow(0px 0px 25px rgba(255, 174, 66, 0.5));
+        }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face div {
+          background-color: #e58d4a; border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .lamp-toggle-container input:checked ~ .lamp-block .face div:nth-child(3n) { background-color: #f6b17a; }
+        .lamp-toggle-container input:checked ~ .lamp-block .face div:nth-child(7n) { background-color: #b56732; }
+
+        .lamp-toggle-container:hover .lamp-block { transform: rotateX(-30deg) rotateY(55deg); }
+        .lamp-toggle-container:active .lamp-block { transform: rotateX(-30deg) rotateY(45deg) scale(0.9); }
+
+        .spinner { font-size: 4px; position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; transform: scale(0.6); margin-left: 20px; margin-top: 20px; }
+        .spinner:before { transform: rotateX(60deg) rotateY(45deg) rotateZ(45deg); animation: 750ms rotateBefore infinite linear reverse; }
+        .spinner:after { transform: rotateX(240deg) rotateY(45deg) rotateZ(45deg); animation: 750ms rotateAfter infinite linear; }
+        .spinner:before, .spinner:after { box-sizing: border-box; content: ''; display: block; position: absolute; margin-top: -5em; margin-left: -5em; width: 10em; height: 10em; transform-style: preserve-3d; transform-origin: 50%; transform: rotateY(50%); perspective-origin: 50% 50%; perspective: 340px; background-size: 10em 10em; background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cjxzdmcgd2lkdGg9IjI2NnB4IiBoZWlnaHQ9IjI5N3B4IiB2aWV3Qm94PSIwIDAgMjY2IDI5NyIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpza2V0Y2g9Imh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaC9ucyI+CiAgICA8dGl0bGU+c3Bpbm5lcjwvdGl0bGU+CiAgICA8ZGVzY3JpcHRpb24+Q3JlYXRlZCB3aXRoIFNrZXRjaCAoaHR0cDovL3d3dy5ib2hlbWlhbmNvZGluZy5jb20vc2tldGNoKTwvZGVzY3JpcHRpb24+CiAgICA8ZGVmcz48L2RlZnM+CiAgICA8ZyBpZD0iUGFnZS0xIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBza2V0Y2g6dHlwZT0iTVNQYWdlIj4KICAgICAgICA8cGF0aCBkPSJNMTcxLjUwNzgxMywzLjI1MDAwMDM4IEMyMjYuMjA4MTgzLDEyLjg1NzcxMTEgMjk3LjExMjcyMiw3MS40OTEyODIzIDI1MC44OTU1OTksMTA4LjQxMDE1NSBDMjE2LjU4MjAyNCwxMzUuODIwMzEgMTg2LjUyODQwNSw5Ny4wNjI0OTY0IDE1Ni44MDA3NzQsODUuNzczNDM0NiBDMTI3LjA3MzE0Myw3NC40ODQzNzIxIDc2Ljg4ODQ2MzIsODQuMjE2MTQ2MiA2MC4xMjg5MDY1LDEwOC40MTAxNTMyQy0xNS45ODA0Njg1LDIxOC4yODEyNDcgMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IDE0NS4yNzczNDQsMjk2LjY2Nzk2OCBDMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IC0yNS40NDkyMTg3LDI1Ny4yNDIxOTggMy4zOTg0Mzc1LDEwOC40MTAxNTUgQzE2LjMwNzA2NjEsNDEuODExNDE3NCA4NC43Mjc1ODI5LC0xMS45OTIyOTg1IDE3MS41MDc4MTMsMy4yNTAwMDAzOCBaIiBpZD0iUGF0aC0xIiBmaWxsPSIjRkZENzAwIiBza2V0Y2g6dHlwZT0iTVNTaGFwZUdyb3VwIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg==); }
+        @keyframes rotateBefore { from { transform: rotateX(60deg) rotateY(45deg) rotateZ(0deg); } to { transform: rotateX(60deg) rotateY(45deg) rotateZ(-360deg); } }
+        @keyframes rotateAfter { from { transform: rotateX(240deg) rotateY(45deg) rotateZ(0deg); } to { transform: rotateX(240deg) rotateY(45deg) rotateZ(360deg); } }
+
+        /* Uiverse minion avatar */
+        .minion-loader {
+          width: 200px;
+          height: 200px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-12px); }
+        }
+
+        .minion-loader:before {
+          content: "";
+          width: 10px;
+          height: 7px;
+          border-radius: 50%;
+          background-color: rgba(0, 0, 0, 0.9);
+          position: absolute;
+          bottom: -9px;
+          animation: shadow046 2s alternate infinite ease;
+        }
+
+        @keyframes shadow046 {
+          0% { transform: scaleX(1); }
+          40% { transform: scaleX(15); opacity: 0.7; }
+        }
+
+        .minion-circle {
+          width: 140px;
+          height: 140px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: absolute;
+        }
+        .minion-loader .p1 { height: 20px; width: 7px; background-color: #ffe71c; position: absolute; margin-top: -118px; margin-left: 3px; }
+        .minion-loader .p2 { height: 20px; width: 7px; background-color: #ffe71c; position: absolute; margin-top: 118px; margin-left: 3px; }
+        .minion-loader .p3 { height: 20px; width: 7px; background-color: #ffe71c; position: absolute; transform: rotate(90deg); margin-right: -120px; }
+        .minion-loader .p4 { height: 20px; width: 7px; background-color: #ffe71c; position: absolute; transform: rotate(90deg); margin-right: 119px; }
+        .minion-loader .p5 { height: 25px; width: 7px; background-color: #ffe71c; position: absolute; margin-top: -84px; margin-right: -89px; transform: rotate(45deg); }
+        .minion-loader .p6 { height: 23px; width: 7px; background-color: #ffe71c; position: absolute; margin-top: 88px; margin-right: 84px; transform: rotate(45deg); }
+        .minion-loader .p7 { height: 23px; width: 7px; background-color: #ffe71c; position: absolute; margin-top: -86px; margin-right: 80px; transform: rotate(-45deg); }
+        .minion-loader .p8 { height: 23px; width: 7px; background-color: #ffe71c; position: absolute; margin-top: 80px; margin-right: -83px; transform: rotate(-45deg); }
+        
+        .minion-circle .traco { position: absolute; z-index: -99; }
+        .minion-loader .content {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          border: 4px solid #ffe71c;
+          overflow: hidden;
+        }
+        
+        .minion-content .eyes {
+          width: 80px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin: 18px auto 0px;
+          padding: 3.5px 10px;
+        }
+        .minion-eyes .eye-left { width: 22px; height: 100%; background-color: #ffe71c; border-radius: 50%; }
+        .minion-eyes .eye-right { width: 22px; height: 100%; background-color: #ffe71c; border-radius: 50%; }
+
+        .minion-content .nouse { margin: -4px auto; height: 5px; width: 5px; border-radius: 50%; background-color: #ffe71c; }
+        .minion-content .mouth { margin: 9px auto 0; height: 3px; width: 100%; background-color: #ffe71c; }
+        .minion-content .teeth {
+          margin: 0 auto;
+          height: 37px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 12px;
+        }
+        .minion-teeth .tooth { height: 100%; width: 4px; background-color: #ffe71c; }
+
+/* From Uiverse.io by shadyeljokers */ 
+.auth-neon-container {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0, 238, 255, 0.25), inset 0 0 30px rgba(0, 0, 0, 0.9);
+  background: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-neon-container span {
+  position: absolute;
+  left: 0;
+  width: 32px;
+  height: 6px;
+  background: #2c4766;
+  border-radius: 80px;
+  transform-origin: 220px;
+  transform: rotate(calc(var(--i) * (360deg / 50)));
+  animation: neonBlink 3s linear infinite;
+  animation-delay: calc(var(--i) * (3s / 50));
+}
+
+@keyframes neonBlink {
+  0% {
+    background: #0ef;
+    box-shadow: 0 0 10px #0ef;
+  }
+  25% {
+    background: #2c4766;
+    box-shadow: none;
+  }
+}
+
+.neon-login-box {
+  position: absolute;
+  width: 85%;
+  max-width: 320px;
+  z-index: 10;
+  padding: 10px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.neon-login-box h2 {
+  font-size: 1.6em;
+  color: #0ef;
+  text-align: center;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 238, 255, 0.5);
+}
+
+.neon-input-box {
+  position: relative;
+  margin: 14px 0;
+  text-align: left;
+}
+
+.neon-input-box input {
+  width: 100%;
+  height: 44px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px solid #2c4766;
+  outline: none;
+  border-radius: 40px;
+  font-size: 0.95em;
+  color: #fff;
+  padding: 0 18px;
+  transition: 0.3s ease;
+  box-sizing: border-box;
+}
+
+.neon-input-box input:focus {
+  border-color: #0ef;
+  box-shadow: 0 0 12px rgba(0, 238, 255, 0.3);
+}
+
+.neon-input-box input:not(:placeholder-shown) ~ label,
+.neon-input-box input:focus ~ label {
+  top: -9px;
+  font-size: 0.75em;
+  background: #111827;
+  padding: 0 8px;
+  color: #0ef;
+  border-radius: 4px;
+}
+
+.neon-input-box label {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  font-size: 0.85em;
+  pointer-events: none;
+  transition: 0.3s ease;
+  color: #94a3b8;
+}
+
+.neon-btn {
+  width: 100%;
+  height: 42px;
+  background: #0ef;
+  border: none;
+  outline: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-size: 0.95em;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+  box-shadow: 0 0 15px rgba(0, 238, 255, 0.4);
+}
+
+.neon-btn:hover {
+  background: #38bdf8;
+  box-shadow: 0 0 25px rgba(0, 238, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.neon-signup-link {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.82em;
+  color: #94a3b8;
+}
+
+.neon-signup-link a {
+  color: #0ef;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.neon-signup-link a:hover {
+  text-decoration: underline;
+}
+
+.neon-cancel-link {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.neon-cancel-link a {
+  font-size: 0.75em;
+  color: #64748b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.neon-cancel-link a:hover {
+  color: #94a3b8;
+}
+
+/* From Uiverse.io by JkHuger */
+.jkhuger-loader {
+  width: 48px;
+  height: 48px;
+  display: block;
+  margin: 6px 0;
+}
+
+#b0 {
+  animation: b0 4s infinite ease;
+  transform-origin: 250px 250px;
+}
+
+#b1 {
+  animation: b1 4s infinite ease;
+}
+
+#b2 {
+  animation: b2 4s infinite ease;
+}
+
+#b3 {
+  animation: b3 4s infinite ease;
+}
+
+#b4 {
+  animation: b4 4s infinite ease;
+}
+
+@keyframes b0 {
+  0% {
+    transform: rotate(0);
+  }
+
+  25% {
+    transform: rotate(-90deg);
+  }
+
+  50% {
+    transform: rotate(-180deg);
+  }
+
+  75% {
+    transform: rotate(-270deg);
+  }
+
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes b1 {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(0, 355px);
+  }
+
+  50% {
+    transform: translate(355px, 355px);
+  }
+
+  75% {
+    transform: translate(355px, 0);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes b2 {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(-355px, 0);
+  }
+
+  50% {
+    transform: translate(-355px, 355px);
+  }
+
+  75% {
+    transform: translate(0, 355px);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes b3 {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(0, -355px);
+  }
+
+  50% {
+    transform: translate(-355px, -355px);
+  }
+
+  75% {
+    transform: translate(-355px, 0);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes b4 {
+  0% {
+    transform: translate(0, 0);
+  }
+
+  25% {
+    transform: translate(355px, 0);
+  }
+
+  50% {
+    transform: translate(355px, -355px);
+  }
+
+  75% {
+    transform: translate(0, -355px);
+  }
+
+  100% {
+    transform: translate(0, 0);
+  }
+}
+    </style>
+    <link rel="icon" href="/static/genie_logo.png" type="image/png">
+</head>
+<body>
+    
+
+
+    
+        <div class="ambient-shape shape-2"></div>
+        <div class="ambient-shape shape-3"></div>
+    </div>
+
+    
+
+    <!-- Spatial Chat Layout -->
+    <div class="chat-container">
+        
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <a href="/" style="font-size: 1.5rem; font-weight: 900; color: #a18cd1; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 0.1em; text-shadow: 2px 2px 0px #000; text-decoration: none; margin-bottom: 24px; display: block; text-align: center;">GENIES</a>
+            
+            <button class="new-chat-btn" onclick="startNewChat()" style="margin-bottom: 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New Chat
+            </button>
+            
+            <div style="margin-bottom: 24px; display: flex; flex-direction: column; gap: 8px;">
+                <a href="/pipeline" style="color: #a1a1aa; text-decoration: none; font-size: 0.9rem; padding: 8px 12px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'; this.style.color='#fff'" onmouseout="this.style.background='transparent'; this.style.color='#a1a1aa'">Pipeline Genie</a>
+                <a href="/docker" style="color: #a1a1aa; text-decoration: none; font-size: 0.9rem; padding: 8px 12px; border-radius: 8px; transition: 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.05)'; this.style.color='#fff'" onmouseout="this.style.background='transparent'; this.style.color='#a1a1aa'">Docker Genie</a>
+            </div>
+            
+            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.3); margin-bottom: 8px; padding-left: 12px;">Recent Chats</div>
+            <div class="history-list" style="margin-top: 0; flex-grow: 1;">
+                <div class="history-item active">Current Conversation</div>
+            </div>
+            
+            <div style="margin-top: auto; display: flex; flex-direction: column; gap: 12px;">
+                <a href="/" style="color: #a1a1aa; text-decoration: none; font-size: 0.9rem; padding: 10px 12px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; transition: 0.2s; display: flex; justify-content: center; gap: 8px; align-items: center;" onmouseover="this.style.background='rgba(255,255,255,0.05)'; this.style.color='#fff'" onmouseout="this.style.background='transparent'; this.style.color='#a1a1aa'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Home
+                </a>
+                <select id="model-select" style="background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #a1a1aa; padding: 10px 12px; font-size: 0.85rem; outline: none; cursor: pointer; width: 100%;">
+                    <option value="x-ai/grok-4.6">Grok 4.6 (Reasoning)</option>
+                    <option value="moonshotai/kimi-k3">Kimi K3 (Advanced)</option>
+                </select>
+                <button class="auth-btn" id="global-auth-btn" onclick="showAuthModal()" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: #fff; padding: 10px 12px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; width: 100%; text-align: left;" onmouseover="this.style.background='rgba(255,255,255,0.08)';" onmouseout="this.style.background='rgba(255,255,255,0.02)';">Sign In / Sign Up</button>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="main-chat">
+            <div class="chat-messages" id="chat-messages">
+                <!-- Welcome Message -->
+                <div class="message ai">
+                    <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
+                        <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                    </div>
+                    <div class="bubble">
+                        Hello! I am your PipelineGenie AI assistant. I can help you orchestrate cloud infrastructure, debug pipelines, or answer anything related to DevOps. How can I assist you today?
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-container">
+                <div class="input-box">
+                    <textarea id="chat-input" rows="1" placeholder="Type your message here..." oninput="autoExpand(this)" onkeydown="handleKey(event)"></textarea>
+                    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="22 2 15 22 11 13 2 9 22 2"></polyline></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        let chatSessions = [];
+        let currentSessionId = null;
+
+        async function refreshSessionsForUser() {
+            const token = localStorage.getItem("genie_auth_token");
+            if (token) {
+                try {
+                    const res = await fetch('/api/chats', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        chatSessions = await res.json();
+                    } else {
+                        if (res.status === 401) {
+                            localStorage.removeItem("genie_auth_token");
+                            localStorage.removeItem("genie_user_email");
+                            const btn = document.getElementById('global-auth-btn');
+                            if(btn) btn.innerText = "Sign In / Sign Up";
+                        }
+                        chatSessions = [];
+                    }
+                } catch (e) {
+                    console.error('Failed to load chats API', e);
+                    chatSessions = [];
+                }
+            } else {
+                chatSessions = [];
+            }
+            
+            renderHistoryList();
+            if (chatSessions.length > 0) {
+                loadSession(chatSessions[0].id);
+            } else {
+                // If empty or no token, visually clear UI
+                currentSessionId = null;
+                chatMessages.innerHTML = `
+                    <div class="message ai">
+                        <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
+                            <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                        </div>
+                        <div class="bubble">Hello! I am your PipelineGenie AI assistant. I can help you orchestrate cloud infrastructure, debug pipelines, or answer anything related to DevOps. How can I assist you today? Click 'New Chat' to begin.</div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderHistoryList() {
+            const list = document.querySelector('.history-list');
+            list.innerHTML = '';
+            chatSessions.forEach(session => {
+                const item = document.createElement('div');
+                item.className = `history-item ${session.id === currentSessionId ? 'active' : ''}`;
+                
+                const titleSpan = document.createElement('span');
+                titleSpan.innerText = session.title || 'New Conversation';
+                titleSpan.style.flex = '1';
+                titleSpan.style.whiteSpace = 'nowrap';
+                titleSpan.style.overflow = 'hidden';
+                titleSpan.style.textOverflow = 'ellipsis';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'delete-btn';
+                deleteBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>';
+                deleteBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    deleteSession(session.id);
+                };
+
+                item.appendChild(titleSpan);
+                item.appendChild(deleteBtn);
+                item.onclick = () => loadSession(session.id);
+                list.appendChild(item);
+            });
+        }
+
+        async function deleteSession(id) {
+            const token = localStorage.getItem("genie_auth_token");
+            if (!token) return;
+            try {
+                await fetch(`/api/chats/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                await refreshSessionsForUser();
+            } catch(e) {
+                console.error("Failed to delete chat", e);
+            }
+        }
+
+        async function loadSession(id) {
+            const token = localStorage.getItem("genie_auth_token");
+            if (!token) return;
+            
+            try {
+                const res = await fetch(`/api/chats/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error("Could not load chat");
+                const chat = await res.json();
+                currentSessionId = chat.id;
+                
+                chatMessages.innerHTML = `
+                    <div class="message ai">
+                        <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
+                            <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                        </div>
+                        <div class="bubble">Hello! I am your PipelineGenie AI assistant. I can help you orchestrate cloud infrastructure, debug pipelines, or answer anything related to DevOps. How can I assist you today?</div>
+                    </div>
+                `;
+                
+                if (chat.messages) {
+                    chat.messages.forEach(msg => {
+                        addMessageBubble(msg.role === 'assistant' ? 'ai' : 'user', msg.content);
+                    });
+                }
+                renderHistoryList();
+            } catch (err) {
+                console.error("Failed loading session:", err);
+            }
+        }
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem("genie_auth_token");
+            let email = localStorage.getItem("genie_user_email");
+            
+            if (token && !email) {
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1]));
+                    if (payload && payload.sub) email = payload.sub;
+                } catch (e) {}
+            }
+            
+            if (token && email) {
+                const authBtn = document.getElementById('global-auth-btn');
+                if (authBtn) authBtn.innerText = email.split('@')[0];
+            }
+            
+            // Wait for sessions to initially load
+            refreshSessionsForUser().then(() => {
+                const initialQuery = localStorage.getItem('genie_initial_query');
+                if (initialQuery) {
+                    localStorage.removeItem('genie_initial_query');
+                    startNewChat();
+                    const chatInputEl = document.getElementById('chat-input');
+                    if (chatInputEl) {
+                        chatInputEl.value = initialQuery;
+                        sendMessage();
+                    }
+                }
+            });
+        });
+
+        function autoExpand(field) {
+            field.style.height = 'inherit';
+            const computed = window.getComputedStyle(field);
+            const height = parseInt(computed.getPropertyValue('border-top-width'), 10)
+                         + parseInt(computed.getPropertyValue('padding-top'), 10)
+                         + field.scrollHeight
+                         + parseInt(computed.getPropertyValue('padding-bottom'), 10)
+                         + parseInt(computed.getPropertyValue('border-bottom-width'), 10);
+            field.style.height = Math.min(height, 200) + 'px';
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function simpleMarkdown(text) {
+            if (!text) return '';
+            let html = text;
+            const codeBlocks = [];
+            
+            // 1. Protect and extract codeblocks
+            html = html.replace(/```([\s\S]*?)```/g, function(match, code) {
+                const safeCode = code.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                const copyCode = encodeURIComponent(code.trim()).replace(/'/g, "%27");
+                codeBlocks.push(`
+                    <div style="position: relative; margin: 12px 0; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; overflow: hidden; background: #050510;">
+                        <button onclick="navigator.clipboard.writeText(decodeURIComponent('${copyCode}')); this.innerText='Copied!'; setTimeout(()=>this.innerHTML='<svg width=\\'14\\' height=\\'14\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\'><rect x=\\'9\\' y=\\'9\\' width=\\'13\\' height=\\'13\\' rx=\\'2\\' ry=\\'2\\'></rect><path d=\\'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\\'></path></svg> Copy', 2000)" style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.15); border: none; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; z-index: 10; font-family: sans-serif;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg> Copy
+                        </button>
+                        <pre style="margin: 0; padding: 35px 15px 15px; font-size: 13px; overflow-x: auto; background: #050510;"><code>${safeCode}</code></pre>
+                    </div>
+                `);
+                return `__CODEBLOCK_${codeBlocks.length - 1}__`;
+            });
+
+            // 2. Parse Markdown Tables
+            html = html.replace(/(?:^|\n)(\|.+?\|\n\|[\s\-:|]+\|\n(?:\|.+?\|\n?)+)/g, function(match, tableText) {
+                const rows = tableText.trim().split('\n').filter(r => r.trim().startsWith('|'));
+                if (rows.length < 2) return match;
+                
+                let tableHtml = '<div class="chat-table-wrap"><table class="chat-table">';
+                
+                // Header
+                const headers = rows[0].split('|').slice(1, -1).map(h => h.trim());
+                tableHtml += '<thead><tr>';
+                headers.forEach(h => {
+                    tableHtml += `<th>${h}</th>`;
+                });
+                tableHtml += '</tr></thead><tbody>';
+                
+                // Rows (skipping delimiter at index 1)
+                for (let i = 2; i < rows.length; i++) {
+                    const cols = rows[i].split('|').slice(1, -1).map(c => c.trim());
+                    tableHtml += '<tr>';
+                    cols.forEach(c => {
+                        tableHtml += `<td>${c}</td>`;
+                    });
+                    tableHtml += '</tr>';
+                }
+                tableHtml += '</tbody></table></div>';
+                return '\n' + tableHtml + '\n';
+            });
+
+            // 3. Parse Headings (e.g. # Title, ## Subtitle, ### Section)
+            html = html.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
+            html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+
+            // 4. Parse Bullet Points (e.g. - item or * item)
+            html = html.replace(/^[*\-] (.*?)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*?<\/li>(\n?<li>.*?<\/li>)*)/g, '<ul>$1</ul>');
+
+            // 5. Parse Bold and Inline Code
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // 6. Line breaks for non-heading/list/table lines
+            html = html.replace(/\n/g, '<br>');
+            html = html.replace(/<\/h[1-4]><br>/g, (m) => m.replace('<br>', ''));
+            html = html.replace(/<\/ul><br>/g, '</ul>');
+            html = html.replace(/<\/li><br>/g, '</li>');
+            html = html.replace(/<\/div><br>/g, '</div>');
+            html = html.replace(/<div class="chat-table-wrap"><br>/g, '<div class="chat-table-wrap">');
+
+            // 7. Restore Codeblocks
+            codeBlocks.forEach((block, index) => {
+                html = html.replace(`__CODEBLOCK_${index}__`, block);
+            });
+
+            return html;
+        }
+
+        function addMessageBubble(role, content) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${role}`;
+
+            if (role === 'ai') {
+                msgDiv.innerHTML = `
+                    <div class="avatar" style="padding: 0; background: transparent; display: flex; align-items: center; justify-content: center;">
+                        <img src="/static/genie_logo.png" style="width: 32px; height: 32px; object-fit: contain;">
+                    </div>
+                    <div class="bubble">${simpleMarkdown(content)}</div>
+                `;
+            } else {
+                const avatarHTML = `
+                <div style="transform: scale(0.18); transform-origin: center; display: flex; justify-content: center; align-items: center;">
+                    <div class="minion-loader">
+                        <div class="p1"></div><div class="p2"></div><div class="p3"></div><div class="p4"></div>
+                        <div class="p5"></div><div class="p6"></div><div class="p7"></div><div class="p8"></div>
+                        <div class="minion-circle"><div class="traco"></div></div>
+                        <div class="content minion-content">
+                            <div class="eyes minion-eyes"><div class="eye-left"></div><div class="eye-right"></div></div>
+                            <div class="nouse"></div>
+                            <div class="mouth"></div>
+                            <div class="teeth minion-teeth"><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div><div class="tooth"></div></div>
+                        </div>
+                    </div>
+                </div>`;
+                msgDiv.innerHTML = `
+                    <div class="avatar" style="background: transparent; overflow: hidden; padding: 0;">${avatarHTML}</div>
+                    <div class="bubble">${content.replace(/\n/g, '<br>')}</div>
+                `;
+            }
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return msgDiv;
+        }
+
+        async function startNewChat() {
+            const token = localStorage.getItem("genie_auth_token");
+            if (!token) {
+                showAuthModal();
+                return;
+            }
+            try {
+                const res = await fetch('/api/chats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ title: 'New Conversation' })
+                });
+                if (res.ok) {
+                    const newChat = await res.json();
+                    await refreshSessionsForUser();
+                    await loadSession(newChat.id);
+                }
+            } catch (err) {
+                console.error("Failed to start new chat");
+            }
+        }
+
+        async function sendMessage() {
+            const token = localStorage.getItem("genie_auth_token");
+            if (!token) {
+                showAuthModal();
+                return;
+            }
+
+            const rawText = chatInput.value.trim();
+            if (!rawText) return;
+
+            // Update UI
+            chatInput.value = '';
+            chatInput.style.height = 'auto';
+            sendBtn.disabled = true;
+            
+            addMessageBubble('user', rawText);
+            
+            // Add typing indicator with dynamic text
+            const statuses = ["Analyzing request...", "Searching knowledge base...", "Detecting pipeline contexts...", "Orchestrating response...", "Reasoning over complex context..."];
+            let statusIndex = 0;
+            let elapsedSeconds = 0;
+
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message ai';
+            typingDiv.innerHTML = `
+                <div class="avatar" style="background: transparent;"><div class="spinner"></div></div>
+                <div class="bubble" style="display:flex; align-items:center; gap: 12px; padding: 14px 20px;">
+                    <div class="typing-indicator" style="padding:0; gap:3px;">
+                        <div class="dot" style="width:5px; height:5px; background:var(--accent-blue);"></div><div class="dot" style="width:5px; height:5px; background:var(--accent-blue);"></div><div class="dot" style="width:5px; height:5px; background:var(--accent-blue);"></div>
+                    </div>
+                    <span id="ai-loading-text" style="font-family:'Fira Code',monospace; font-size: 0.85rem; color:var(--accent-blue);">Initializing... (0s)</span>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            const loadingInterval = setInterval(() => {
+                const textEl = document.getElementById('ai-loading-text');
+                elapsedSeconds++;
+                if (textEl) {
+                    if (elapsedSeconds % 2 === 0) statusIndex++;
+                    textEl.innerText = `${statuses[statusIndex % statuses.length]} (${elapsedSeconds}s)`;
+                } else {
+                    clearInterval(loadingInterval);
+                }
+            }, 1000);
+
+            if (!currentSessionId) {
+                // Pre-create chat if they skipped hitting "New Chat" and just typed
+                try {
+                    const res = await fetch('/api/chats', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ title: rawText.substring(0, 30) })
+                    });
+                    if (res.ok) {
+                        const newChat = await res.json();
+                        currentSessionId = newChat.id;
+                        // Refresh session list in sidebar without reloading messages into DOM
+                        const token = localStorage.getItem("genie_auth_token");
+                        if (token) {
+                            try {
+                                const listRes = await fetch('/api/chats', {
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                if (listRes.ok) {
+                                    chatSessions = await listRes.json();
+                                    renderHistoryList();
+                                }
+                            } catch(e) {}
+                        }
+                    }
+                } catch (e) {
+                    console.error("Failed creating initial chat session", e);
+                }
+            }
+
+            const selectedModel = document.getElementById('model-select').value;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 300000); // 300 seconds
+
+                const response = await fetch(`/api/chats/${currentSessionId}/messages`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ role: "user", content: rawText, model: selectedModel }),
+                    signal: controller.signal
+                });
+
+                clearTimeout(timeoutId);
+
+                if (typingDiv && typingDiv.parentNode) {
+                    typingDiv.parentNode.removeChild(typingDiv);
+                }
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem("genie_auth_token");
+                        localStorage.removeItem("genie_user_email");
+                        const btn = document.getElementById('global-auth-btn');
+                        if(btn) btn.innerText = "Sign In / Sign Up";
+                    }
+                    let errDetail = 'Chat failed';
+                    try {
+                        const err = await response.json();
+                        errDetail = err.detail || errDetail;
+                    } catch(e) {}
+                    throw new Error(errDetail);
+                }
+
+                const aiBubbleHTML = addMessageBubble('ai', '');
+                const bubbleContentEl = aiBubbleHTML.querySelector('.bubble');
+                const loadingSvg = `
+<svg class="jkhuger-loader" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500">
+  <g id="b0">
+    <rect id="b1" fill="#38bdf8" x="195" y="40" width="110" height="110" rx="24" ry="24"></rect>
+    <rect id="b2" fill="#818cf8" x="350" y="195" width="110" height="110" rx="24" ry="24"></rect>
+    <rect id="b3" fill="#c084fc" x="195" y="350" width="110" height="110" rx="24" ry="24"></rect>
+    <rect id="b4" fill="#34d399" x="40" y="195" width="110" height="110" rx="24" ry="24"></rect>
+  </g>
+</svg>`;
+                bubbleContentEl.innerHTML = loadingSvg;
+                
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let accumulatedText = "";
+                let renderPending = false;
+                let userScrolledUp = false;
+
+                const onChatScroll = () => {
+                    const threshold = 120;
+                    const distanceFromBottom = chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight;
+                    userScrolledUp = distanceFromBottom > threshold;
+                };
+                chatMessages.addEventListener('scroll', onChatScroll, { passive: true });
+
+                const updateDOM = () => {
+                    if (accumulatedText) {
+                        bubbleContentEl.innerHTML = simpleMarkdown(accumulatedText);
+                    }
+                    if (!userScrolledUp) {
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                    renderPending = false;
+                };
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+                    
+                    const chunkStr = decoder.decode(value, { stream: true });
+                    const lines = chunkStr.split('\n');
+                    for (const line of lines) {
+                        if (line.trim().startsWith('data: ') && !line.includes('[DONE]')) {
+                            try {
+                                const payloadStr = line.replace('data: ', '').trim();
+                                if (!payloadStr) continue;
+                                const payload = JSON.parse(payloadStr);
+                                if (payload.error) throw new Error(payload.error);
+                                
+                                const delta = payload.choices && payload.choices[0] && payload.choices[0].delta || {};
+                                if (delta.content) {
+                                    accumulatedText += delta.content;
+                                    if (!renderPending) {
+                                        renderPending = true;
+                                        requestAnimationFrame(updateDOM);
+                                    }
+                                }
+                            } catch(e) {}
+                        }
+                    }
+                }
+
+                // Final render
+                updateDOM();
+                chatMessages.removeEventListener('scroll', onChatScroll);
+
+                await refreshSessionsForUser();
+
+            } catch (err) {
+                if (chatMessages.contains(typingDiv)) chatMessages.removeChild(typingDiv);
+                
+                let errDetail = err.detail || err.message;
+                if (typeof errDetail === 'object') errDetail = JSON.stringify(errDetail);
+                let errorMsg = err.name === 'AbortError' ? 'AI model took too long to respond. The request timed out after 300 seconds.' : errDetail;
+                
+                const errDiv = document.createElement('div');
+                errDiv.className = 'message ai';
+                errDiv.innerHTML = `
+                    <div class="avatar" style="background: rgba(255,0,0,0.2); color: #ff4d4d;">!</div>
+                    <div class="bubble" style="border-color: rgba(255,0,0,0.3); color: #ff4d4d;">Error: ${errorMsg}</div>
+                `;
+                chatMessages.appendChild(errDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            } finally {
+                clearInterval(loadingInterval);
+                sendBtn.disabled = false;
+                chatInput.focus();
+            }
+        }
+        // Auth Modal Injection
+        document.body.insertAdjacentHTML('beforeend', `
+<style>
+/* From Uiverse.io by shadyeljokers */ 
+.auth-neon-container {
+  position: relative;
+  width: 440px;
+  height: 440px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 50px rgba(0, 238, 255, 0.25), inset 0 0 30px rgba(0, 0, 0, 0.9);
+  background: #111827;
+  font-family: 'Inter', sans-serif;
+}
+
+.auth-neon-container span {
+  position: absolute;
+  left: 0;
+  width: 32px;
+  height: 6px;
+  background: #2c4766;
+  border-radius: 80px;
+  transform-origin: 220px;
+  transform: rotate(calc(var(--i) * (360deg / 50)));
+  animation: neonBlink 3s linear infinite;
+  animation-delay: calc(var(--i) * (3s / 50));
+}
+
+@keyframes neonBlink {
+  0% {
+    background: #0ef;
+    box-shadow: 0 0 10px #0ef;
+  }
+  25% {
+    background: #2c4766;
+    box-shadow: none;
+  }
+}
+
+.neon-login-box {
+  position: absolute;
+  width: 85%;
+  max-width: 320px;
+  z-index: 10;
+  padding: 10px;
+  border-radius: 20px;
+  text-align: center;
+}
+
+.neon-login-box h2 {
+  font-size: 1.6em;
+  color: #0ef;
+  text-align: center;
+  margin: 0 0 6px 0;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 10px rgba(0, 238, 255, 0.5);
+}
+
+.neon-input-box {
+  position: relative;
+  margin: 14px 0;
+  text-align: left;
+}
+
+.neon-input-box input {
+  width: 100%;
+  height: 44px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px solid #2c4766;
+  outline: none;
+  border-radius: 40px;
+  font-size: 0.95em;
+  color: #fff;
+  padding: 0 18px;
+  transition: 0.3s ease;
+  box-sizing: border-box;
+}
+
+.neon-input-box input:focus {
+  border-color: #0ef;
+  box-shadow: 0 0 12px rgba(0, 238, 255, 0.3);
+}
+
+.neon-input-box input:not(:placeholder-shown) ~ label,
+.neon-input-box input:focus ~ label {
+  top: -9px;
+  font-size: 0.75em;
+  background: #111827;
+  padding: 0 8px;
+  color: #0ef;
+  border-radius: 4px;
+}
+
+.neon-input-box label {
+  position: absolute;
+  top: 50%;
+  left: 18px;
+  transform: translateY(-50%);
+  font-size: 0.85em;
+  pointer-events: none;
+  transition: 0.3s ease;
+  color: #94a3b8;
+}
+
+.neon-btn {
+  width: 100%;
+  height: 42px;
+  background: #0ef;
+  border: none;
+  outline: none;
+  border-radius: 40px;
+  cursor: pointer;
+  font-size: 0.95em;
+  color: #0f172a;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  margin-top: 4px;
+  box-shadow: 0 0 15px rgba(0, 238, 255, 0.4);
+}
+
+.neon-btn:hover {
+  background: #38bdf8;
+  box-shadow: 0 0 25px rgba(0, 238, 255, 0.7);
+  transform: translateY(-1px);
+}
+
+.neon-signup-link {
+  margin: 10px 0 0;
+  text-align: center;
+  font-size: 0.82em;
+  color: #94a3b8;
+}
+
+.neon-signup-link a {
+  color: #0ef;
+  text-decoration: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.neon-signup-link a:hover {
+  text-decoration: underline;
+}
+
+.neon-cancel-link {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.neon-cancel-link a {
+  font-size: 0.75em;
+  color: #64748b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.neon-cancel-link a:hover {
+  color: #94a3b8;
+}
+</style>
+        <div id="auth-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div class="auth-neon-container" id="auth-neon-spans-box">
+            <div class="neon-login-box">
+              <h2 id="auth-form-title">LOGIN</h2>
+              <div id="auth-main-form">
+                <div class="neon-input-box">
+                  <input type="email" id="auth-email" placeholder=" " required autocomplete="off">
+                  <label>Email</label>
+                </div>
+                
+                <div class="neon-input-box" id="auth-password-group">
+                  <input type="password" id="auth-pass" placeholder=" " required autocomplete="off">
+                  <label>Password</label>
+                </div>
+
+                <div class="neon-input-box" id="auth-otp-group" style="display: none;">
+                  <input type="text" id="auth-otp" placeholder=" " maxlength="6" style="letter-spacing: 6px; font-weight:800; text-align:center;">
+                  <label>6-Digit OTP</label>
+                </div>
+                
+                <p id="auth-err" style="color:#ef4444; font-size:0.75rem; min-height:18px; text-align:center; margin:2px 0;"></p>
+                
+                <button class="neon-btn" id="auth-submit-btn" onclick="submitAuth()">
+                  Authorize
+                </button>
+
+                <div class="neon-signup-link" id="auth-signup-text">
+                  New developer? <a onclick="submitAuth('signup')">Sign Up</a>
+                </div>
+                
+                <div class="neon-cancel-link">
+                  <a onclick="closeAuthModal()">Cancel</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Logout Confirmation Modal -->
+        <div id="logout-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; backdrop-filter: blur(16px) saturate(180%);">
+          <div style="background: rgba(13, 14, 24, 0.95); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 20px; width: 90%; max-width: 420px; padding: 2.2rem; box-shadow: 0 0 50px rgba(239, 68, 68, 0.2), inset 0 1px 1px rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.25rem; position: relative;">
+            
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, rgba(239, 68, 68, 0.25) 0%, rgba(239, 68, 68, 0.05) 70%); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </div>
+
+            <div>
+              <h3 style="font-size: 1.35rem; font-weight: 700; color: #fff; margin: 0 0 0.4rem; letter-spacing: -0.5px;">Terminate Session</h3>
+              <p style="color: #94a3b8; font-size: 0.85rem; line-height: 1.5; margin: 0;">Are you sure you want to disconnect and log out of your account?</p>
+            </div>
+
+            <div id="logout-user-badge" style="display: inline-flex; align-items: center; gap: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 6px 14px; border-radius: 9999px; font-size: 0.8rem; color: #cbd5e1; font-family: monospace;">
+              <span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e;"></span>
+              <span id="logout-user-email">Active User</span>
+            </div>
+
+            <div style="display: flex; gap: 12px; width: 100%; margin-top: 0.5rem;">
+              <button onclick="closeLogoutModal()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12); color: #cbd5e1; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                Stay Signed In
+              </button>
+              <button onclick="confirmLogout()" style="flex: 1; padding: 12px 16px; border-radius: 12px; background: linear-gradient(135deg, #ef4444, #dc2626); border: none; color: #ffffff; font-size: 0.85rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35); transition: all 0.2s;">
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>`);
+
+        (function initNeonSpans() {
+            const container = document.getElementById('auth-neon-spans-box');
+            if (container && !container.querySelector('span')) {
+                for (let i = 0; i < 50; i++) {
+                    const span = document.createElement('span');
+                    span.style.setProperty('--i', i);
+                    container.appendChild(span);
+                }
+            }
+        })();
+
+        function closeAuthModal() {
+            document.getElementById('auth-overlay').style.display = 'none';
+            document.getElementById('auth-password-group').style.display = 'block';
+            document.getElementById('auth-otp-group').style.display = 'none';
+            document.getElementById('auth-signup-text').style.display = 'block';
+            document.getElementById('auth-err').innerText = '';
+            document.getElementById('auth-pass').value = '';
+            document.getElementById('auth-otp').value = '';
+            document.getElementById('auth-form-title').innerText = 'LOGIN';
+
+            const btn = document.getElementById('auth-submit-btn');
+            btn.innerText = 'Authorize';
+            btn.onclick = () => submitAuth();
+        }
+
+        function showAuthModal() {
+            if (localStorage.getItem("genie_auth_token")) {
+                showLogoutModal();
+                return;
+            }
+            closeAuthModal(); // reset state
+            document.getElementById('auth-overlay').style.display = 'flex';
+        }
+
+        function showLogoutModal() {
+            const email = localStorage.getItem("genie_user_email") || "Active User";
+            const emailEl = document.getElementById('logout-user-email');
+            if (emailEl) emailEl.innerText = email;
+            const modal = document.getElementById('logout-overlay');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logout-overlay');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function confirmLogout() {
+            localStorage.removeItem("genie_auth_token");
+            localStorage.removeItem("genie_user_email");
+            closeLogoutModal();
+            const btn = document.getElementById('global-auth-btn');
+            if (btn) btn.innerText = "Sign In / Sign Up";
+            refreshSessionsForUser();
+        }
+
+        let pendingAuthEmail = "";
+
+        async function submitAuth(mode = 'login') {
+            const email = document.getElementById('auth-email').value.trim().toLowerCase();
+            const pass = document.getElementById('auth-pass').value;
+            const err = document.getElementById('auth-err');
+            if(!email || !pass) { err.innerText = "Credentials required."; return; }
+
+            err.innerText = "Authenticating...";
+            try {
+                // First try natural login
+                let res = await fetch(`/api/auth/${mode}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email, password: pass})
+                });
+                
+                // If user doesn't exist, magically transition to Signup + OTP protocol
+                if (res.status === 404 && mode === 'login') {
+                    res = await fetch(`/api/auth/signup`, {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({email: email, password: pass})
+                    });
+                }
+
+                const data = await res.json();
+                
+                if (res.ok && data.access_token) {
+                    // Login success -> Directly authenticate
+                    localStorage.setItem("genie_auth_token", data.access_token);
+                    localStorage.setItem("genie_user_email", email);
+                    const authBtn = document.getElementById('global-auth-btn');
+                    if (authBtn) authBtn.innerText = email.split('@')[0];
+                    closeAuthModal();
+                    refreshSessionsForUser(); 
+                } else if (res.ok) {
+                    // Signup success -> Transition to OTP input
+                    pendingAuthEmail = email;
+                    document.getElementById('auth-password-group').style.display = 'none';
+                    document.getElementById('auth-signup-text').style.display = 'none';
+                    document.getElementById('auth-otp-group').style.display = 'block';
+                    document.getElementById('auth-form-title').innerText = 'VERIFY OTP';
+                    err.style.color = "#0ef";
+                    err.innerText = data.detail || "Enter OTP sent to email";
+
+                    const btn = document.getElementById('auth-submit-btn');
+                    btn.innerText = 'Validate Code';
+                    btn.onclick = () => verifyOtp();
+                } else {
+                    err.innerText = data.detail || "Authentication Failed.";
+                }
+            } catch (e) {
+                err.innerText = "Network execution aborted.";
+            }
+        }
+
+        async function verifyOtp() {
+            const email = pendingAuthEmail || document.getElementById('auth-email').value.trim().toLowerCase();
+            const code = document.getElementById('auth-otp').value.trim();
+            const err = document.getElementById('auth-err');
+
+            if(code.length < 6) { err.innerText = "Enter full 6-digit OTP"; return; }
+            err.innerText = "Verifying...";
+            
+            try {
+                const res = await fetch('/api/auth/verify-otp', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({email: email, code: code})
+                });
+                const data = await res.json();
+                if (res.ok && data.access_token) {
+                    localStorage.setItem("genie_auth_token", data.access_token);
+                    localStorage.setItem("genie_user_email", email);
+                    const authBtn = document.getElementById('global-auth-btn');
+                    if (authBtn) authBtn.innerText = email.split('@')[0];
+                    closeAuthModal();
+                    refreshSessionsForUser();
+                } else {
+                    err.innerText = data.detail || "Verification failed.";
+                }
+            } catch(e) {
+                err.innerText = "Network error during verification.";
+            }
+        }
+    </script>
+</body>
+</html>

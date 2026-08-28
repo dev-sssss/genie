@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "_check_enum": ["compatibility_lookup", "secret_presence", "file_presence", "runtime_match", "dependency_presence"],
+  "_on_fail_enum": ["block", "warn"],
+  "validation_rules": [
+    {
+      "id": "val.001",
+      "description": "Deployment target must not be a hard-incompatible pairing with the selected framework.",
+      "check": "compatibility_lookup",
+      "params": { "a_field": "framework", "b_field": "deployment_target", "block_on_severity": ["hard"] },
+      "on_fail": "block",
+      "message_template": "{{framework}} is not compatible with {{deployment_target}}: {{reason}}"
+    },
+    {
+      "id": "val.002",
+      "description": "Warn (don't block) on soft-incompatible pairings that need an adapter.",
+      "check": "compatibility_lookup",
+      "params": { "a_field": "framework", "b_field": "deployment_target", "warn_on_severity": ["soft"] },
+      "on_fail": "warn",
+      "message_template": "{{framework}} on {{deployment_target}} needs extra setup: {{reason}}"
+    },
+    {
+      "id": "val.003",
+      "description": "All required secrets for the chosen deployment strategy must be declared by the user before generation.",
+      "check": "secret_presence",
+      "params": { "lookup_file": "deployment_rules", "key_field": "deployment_strategy" },
+      "on_fail": "block",
+      "message_template": "Missing required secret(s) for {{deployment_strategy}}: {{missing_secrets}}"
+    },
+    {
+      "id": "val.004",
+      "description": "All required secrets for the chosen cloud auth method must be declared by the user before generation.",
+      "check": "secret_presence",
+      "params": { "lookup_file": "cloud_rules", "key_field": "cloud_auth_method" },
+      "on_fail": "block",
+      "message_template": "Missing required secret(s) for {{cloud}} auth method {{auth_method}}: {{missing_secrets}}"
+    },
+    {
+      "id": "val.005",
+      "description": "Selected testing framework should match the detected/declared runtime.",
+      "check": "runtime_match",
+      "params": { "a_field": "testing_framework", "b_field": "runtime" },
+      "on_fail": "warn",
+      "message_template": "{{testing_framework}} is unusual for runtime {{runtime}} — confirm this is intended."
+    },
+    {
+      "id": "val.006",
+      "description": "Required files for the selected component must exist in the repository.",
+      "check": "file_presence",
+      "params": { "lookup_file": "dependencies", "key_field": "component" },
+      "on_fail": "block",
+      "message_template": "{{component}} requires file(s) not found in repo: {{missing_files}}"
+    },
+    {
+      "id": "val.007",
+      "description": "Required parent/prerequisite components must be selected before a dependent component can be enabled.",
+      "check": "dependency_presence",
+      "params": { "lookup_file": "dependencies", "key_field": "requires_components" },
+      "on_fail": "block",
+      "message_template": "{{component}} requires {{missing_components}} to be configured first."
+    }
+  ]
+}

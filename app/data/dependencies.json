@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "dependencies": [
+    {
+      "id": "dep.framework.nextjs",
+      "component": "framework.nextjs",
+      "requires_files": ["package.json", "next.config.js"],
+      "requires_components": ["runtime.node"],
+      "optional_components": ["test.jest", "test.playwright"]
+    },
+    {
+      "id": "dep.framework.django",
+      "component": "framework.django",
+      "requires_files": ["manage.py", "requirements.txt"],
+      "requires_components": ["runtime.python"],
+      "optional_components": ["test.pytest"],
+      "notes": "Also implies a database migration step must exist in the deploy stage, not just build."
+    },
+    {
+      "id": "dep.deploy.docker",
+      "component": "deploy.docker",
+      "requires_files": ["Dockerfile"],
+      "requires_components": [],
+      "optional_components": ["deploy.docker_compose"]
+    },
+    {
+      "id": "dep.deploy.helm",
+      "component": "deploy.helm",
+      "requires_files": ["Chart.yaml", "values.yaml"],
+      "requires_components": ["deploy.kubernetes"],
+      "optional_components": []
+    },
+    {
+      "id": "dep.security.trivy",
+      "component": "security.trivy",
+      "requires_files": ["Dockerfile"],
+      "requires_components": ["deploy.docker"],
+      "optional_components": []
+    },
+    {
+      "id": "dep.security.checkov",
+      "component": "security.checkov",
+      "requires_files": [],
+      "requires_components": [],
+      "optional_components": [],
+      "notes": "Only meaningful if the repo contains Terraform (*.tf), Kubernetes manifests, or a Dockerfile — otherwise skip this stage entirely."
+    },
+    {
+      "id": "dep.deploy.serverless_framework",
+      "component": "deploy.serverless_framework",
+      "requires_files": ["serverless.yml"],
+      "requires_components": ["cloud.aws"],
+      "optional_components": []
+    },
+    {
+      "id": "dep.notify.slack",
+      "component": "notify.slack",
+      "requires_files": [],
+      "requires_components": [],
+      "optional_components": [],
+      "notes": "Purely a secret dependency (secret.slack_webhook_url) — see secret_rules.json, no repo file requirement."
+    }
+  ]
+}

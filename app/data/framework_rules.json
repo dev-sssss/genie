@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0",
+  "frameworks": [
+    {
+      "id": "framework.nextjs",
+      "name": "Next.js",
+      "runtime": "runtime.node",
+      "build_command": "npm run build",
+      "output_dir": ".next",
+      "default_test_frameworks": ["test.jest", "test.playwright"],
+      "default_lint": "eslint",
+      "supported_deployment_targets": ["target.vercel", "target.ec2", "target.docker", "target.aws_amplify"],
+      "special_notes": "SSR apps need a persistent Node process or an edge adapter. Static export (next export) can go to any static host."
+    },
+    {
+      "id": "framework.react",
+      "name": "React (CRA/Vite)",
+      "runtime": "runtime.node",
+      "build_command": "npm run build",
+      "output_dir": "dist",
+      "default_test_frameworks": ["test.jest", "test.vitest", "test.cypress"],
+      "default_lint": "eslint",
+      "supported_deployment_targets": ["target.netlify", "target.vercel", "target.docker", "target.render"],
+      "special_notes": "Pure static build output — any static file host or CDN works."
+    },
+    {
+      "id": "framework.express",
+      "name": "Express.js",
+      "runtime": "runtime.node",
+      "build_command": null,
+      "output_dir": null,
+      "default_test_frameworks": ["test.jest", "test.mocha"],
+      "default_lint": "eslint",
+      "supported_deployment_targets": ["target.ec2", "target.ecs", "target.docker", "target.railway"],
+      "special_notes": "No build step unless TypeScript is used (tsc compile step required in that case)."
+    },
+    {
+      "id": "framework.nestjs",
+      "name": "NestJS",
+      "runtime": "runtime.node",
+      "build_command": "npm run build",
+      "output_dir": "dist",
+      "default_test_frameworks": ["test.jest"],
+      "default_lint": "eslint",
+      "supported_deployment_targets": ["target.ecs", "target.eks", "target.docker", "target.ec2"],
+      "special_notes": "TypeScript-first, always has a compile step. Ships its own Jest config by default."
+    },
+    {
+      "id": "framework.fastapi",
+      "name": "FastAPI",
+      "runtime": "runtime.python",
+      "build_command": null,
+      "output_dir": null,
+      "default_test_frameworks": ["test.pytest"],
+      "default_lint": "ruff",
+      "supported_deployment_targets": ["target.lambda", "target.cloud_run", "target.ec2", "target.docker"],
+      "special_notes": "Needs an ASGI server (uvicorn/gunicorn) at runtime — include that in the start command, not just 'python main.py'."
+    },
+    {
+      "id": "framework.django",
+      "name": "Django",
+      "runtime": "runtime.python",
+      "build_command": "python manage.py collectstatic --noinput",
+      "output_dir": "staticfiles",
+      "default_test_frameworks": ["test.pytest"],
+      "default_lint": "ruff",
+      "supported_deployment_targets": ["target.elastic_beanstalk", "target.ec2", "target.docker", "target.gcp_vm"],
+      "special_notes": "Requires DB migration step (python manage.py migrate) in deploy stage, not just build stage."
+    },
+    {
+      "id": "framework.flask",
+      "name": "Flask",
+      "runtime": "runtime.python",
+      "build_command": null,
+      "output_dir": null,
+      "default_test_frameworks": ["test.pytest"],
+      "default_lint": "ruff",
+      "supported_deployment_targets": ["target.ec2", "target.docker", "target.render"],
+      "special_notes": "Needs gunicorn/waitress in production start command, not the Flask dev server."
+    },
+    {
+      "id": "framework.spring_boot",
+      "name": "Spring Boot",
+      "runtime": "runtime.java",
+      "build_command": "mvn clean package -DskipTests",
+      "output_dir": "target",
+      "default_test_frameworks": ["test.junit"],
+      "default_lint": "checkstyle",
+      "supported_deployment_targets": ["target.eks", "target.ecs", "target.azure_app_service", "target.docker"],
+      "special_notes": "Produces a fat jar; container image only needs a JRE base, not a JDK, at runtime."
+    },
+    {
+      "id": "framework.laravel",
+      "name": "Laravel",
+      "runtime": "runtime.php",
+      "build_command": "composer install --no-dev --optimize-autoloader",
+      "output_dir": null,
+      "default_test_frameworks": [],
+      "default_lint": "pint",
+      "supported_deployment_targets": ["target.ec2", "target.docker", "target.render"],
+      "special_notes": "Needs php artisan migrate and config/route/view caching commands in deploy stage."
+    },
+    {
+      "id": "framework.aspnet",
+      "name": "ASP.NET",
+      "runtime": "runtime.dotnet",
+      "build_command": "dotnet publish -c Release -o out",
+      "output_dir": "out",
+      "default_test_frameworks": ["test.nunit"],
+      "default_lint": null,
+      "supported_deployment_targets": ["target.azure_app_service", "target.aks", "target.docker"],
+      "special_notes": "Native first-class fit for Azure App Service; needs runtime image matching SDK version for containers."
+    },
+    {
+      "id": "framework.angular",
+      "name": "Angular",
+      "runtime": "runtime.node",
+      "build_command": "npm run build -- --configuration production",
+      "output_dir": "dist",
+      "default_test_frameworks": ["test.jest", "test.cypress"],
+      "default_lint": "eslint",
+      "supported_deployment_targets": ["target.netlify", "target.docker", "target.render"],
+      "special_notes": "Static build output; watch for larger build memory requirements in CI runners."
+    },
+    {
+      "id": "framework.vue",
+      "name": "Vue",
+      "runtime": "runtime.node",
+      "build_command": "npm run build",
+      "output_dir": "dist",
+      "default_test_frameworks": ["test.vitest", "test.cypress"],
+      "default_lint": "eslint",
+      "supported_deployment_targets": ["target.netlify", "target.vercel", "target.docker"],
+      "special_notes": "Static build output, same deployment story as React."
+    },
+    {
+      "id": "framework.go",
+      "name": "Go (net/http, Gin, Echo etc.)",
+      "runtime": "runtime.go",
+      "build_command": "go build -o app .",
+      "output_dir": "app",
+      "default_test_frameworks": [],
+      "default_lint": "golangci-lint",
+      "supported_deployment_targets": ["target.cloud_run", "target.ecs", "target.docker", "target.gke"],
+      "special_notes": "Single static binary — smallest possible container image (scratch/distroless base)."
+    },
+    {
+      "id": "framework.rust",
+      "name": "Rust",
+      "runtime": null,
+      "build_command": "cargo build --release",
+      "output_dir": "target/release",
+      "default_test_frameworks": [],
+      "default_lint": "clippy",
+      "supported_deployment_targets": ["target.docker", "target.ecs", "target.ec2"],
+      "special_notes": "Long compile times — always cache ~/.cargo and target/ between CI runs."
+    }
+  ]
+}
