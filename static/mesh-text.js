@@ -177,11 +177,36 @@ const MeshText = (function() {
             ctx.fillStyle = this.options.color;
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-            const realSize = this.options.fontSize * (window.devicePixelRatio || 1);
-            ctx.font = `${this.options.fontWeight} ${realSize}px ${this.options.fontFamily}, sans-serif`;
             
             const lines = this.options.text.split("\\n");
-            const lineHeight = realSize * 1.1;
+            let realSize = (this.options.fontSize || 80) * (window.devicePixelRatio || 1);
+            ctx.font = `${this.options.fontWeight} ${realSize}px ${this.options.fontFamily}, sans-serif`;
+
+            // Calculate max line width and ensure it fits comfortably within 90% of canvas width
+            let maxLineWidth = 0;
+            lines.forEach(line => {
+                const metrics = ctx.measureText(line);
+                if (metrics.width > maxLineWidth) maxLineWidth = metrics.width;
+            });
+
+            const maxWidthAllowed = w * 0.90;
+            const maxHeightAllowed = h * 0.85;
+            const totalHeight = lines.length * (realSize * 1.15);
+
+            let scaleFactor = 1.0;
+            if (maxLineWidth > maxWidthAllowed && maxLineWidth > 0) {
+                scaleFactor = Math.min(scaleFactor, maxWidthAllowed / maxLineWidth);
+            }
+            if (totalHeight > maxHeightAllowed && totalHeight > 0) {
+                scaleFactor = Math.min(scaleFactor, maxHeightAllowed / totalHeight);
+            }
+
+            if (scaleFactor < 1.0) {
+                realSize = Math.max(16, Math.floor(realSize * scaleFactor));
+                ctx.font = `${this.options.fontWeight} ${realSize}px ${this.options.fontFamily}, sans-serif`;
+            }
+            
+            const lineHeight = realSize * 1.15;
             const startY = (h / 2) - ((lines.length - 1) * lineHeight / 2);
             lines.forEach((line, i) => {
                 ctx.fillText(line, w / 2, startY + (i * lineHeight));
